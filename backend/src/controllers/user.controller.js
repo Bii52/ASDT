@@ -1,6 +1,10 @@
 import { StatusCodes } from 'http-status-codes'
 import { userService } from '~/services/user.service.js'
-import UserModel from '~/models/User.model.js'
+import UserModel from '~/models/user.model.js'
+import catchAsync from '~/utils/catchAsync'
+import pick from '~/utils/pick'
+import ApiError from '~/utils/ApiError'
+import httpStatus from 'http-status-codes'
 
 const register = async (req, res, next) => {
   try {
@@ -17,19 +21,7 @@ const register = async (req, res, next) => {
 
 const verifyRegistration = async (req, res, next) => {
   try {
-    const result = await userService.verifyEmail(req.body);
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: result.message
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const verifyEmail = async (req, res, next) => {
-  try {
-    const result = await userService.verifyEmail(req.body);
+    const result = await userService.verifyRegistration(req.body);
     res.status(StatusCodes.OK).json({
       success: true,
       message: result.message
@@ -107,14 +99,6 @@ const requestToken = async (req, res, next) => {
   }
 }
 
-const getAllUsers = async (req, res, next) => {
-  try {
-    const users = await userService.getAllUsers()
-    res.status(StatusCodes.OK).json(users)
-  } catch (error) {
-    next(error)
-  }
-}
 
 const changePassword = async (req, res, next) => {
   try {
@@ -156,45 +140,9 @@ const getUserDetails = async (req, res, next) => {
   }
 }
 
-const banUser = async (req, res, next) => {
-  try {
-    const userId = req.params.id
-    await userService.banUser(userId)
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'User has been banned successfully'
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-const banSelf = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    await userService.banUser(userId);
-
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Tài khoản của bạn đã bị khóa thành công'
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 
-const destroyUser = async (req, res, next) => {
-  try {
-    const userId = req.params.id
-    await userService.destroyUser(userId)
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'User has been deleted successfully'
-    })
-  } catch (error) {
-    next(error)
-  }
-}
+
 
 const resetPassword = async (req, res, next) => {
   try {
@@ -208,19 +156,6 @@ const resetPassword = async (req, res, next) => {
   }
 }
 
-const updateUserLocation = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const { longitude, latitude } = req.body;
-    const result = await userService.updateUserLocation(userId, longitude, latitude);
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: result.message
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 const getOutstandingBloggers = async (req, res, next) => {
   try {
@@ -253,18 +188,7 @@ const oAuthLoginCallback = async (req, res, next) => {
   }
 }
 
-const getUserBlogs = async (req, res, next) => {
-  try {
-    const userId = req.user.id;
-    const blogs = await userService.getUserBlogs(userId);
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data: blogs
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+
 
 const adminTest = (req, res) => {
   res.status(StatusCodes.OK).json({ message: 'Admin content' });
@@ -274,6 +198,31 @@ const doctorTest = (req, res) => {
   res.status(StatusCodes.OK).json({ message: 'Doctor content' });
 };
 
+const getUsers = catchAsync(async (req, res) => {
+  const filter = pick(req.query, ['name', 'role']);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const result = await userService.queryUsers(filter, options);
+  res.send(result);
+});
+
+const getUser = catchAsync(async (req, res) => {
+  const user = await userService.getUserById(req.params.userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  res.send(user);
+});
+
+const updateUser = catchAsync(async (req, res) => {
+  const user = await userService.updateUserById(req.params.userId, req.body);
+  res.send(user);
+});
+
+const deleteUser = catchAsync(async (req, res) => {
+  await userService.deleteUserById(req.params.userId);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 export const userController = {
   register,
   login,
@@ -282,11 +231,14 @@ export const userController = {
   requestToken,
   getUserDetails,
   changePassword,
-  verifyEmail,
   sendPasswordResetOTP,
   getProfile,
   verifyRegistration,
   oAuthLoginCallback,
   adminTest,
-  doctorTest
+  doctorTest,
+  getUsers,
+  getUser,
+  updateUser,
+  deleteUser
 }
