@@ -34,6 +34,7 @@ const otpSchema = new mongoose.Schema({
   },
   registrationData: {
     fullName: { type: String },
+    email: { type: String },
     password: { type: String },
     avatar: { type: String },
     phoneNumber: { type: String }
