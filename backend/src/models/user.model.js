@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const LoginHistorySchema = new mongoose.Schema({
   ipAddress: { type: String },
@@ -8,20 +9,22 @@ const LoginHistorySchema = new mongoose.Schema({
 });
 
 const UserSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
+  fullName: {
     type: String,
     required: true,
   },
   email: {
     type: String,
+    required: true, // Make email required
     unique: true,
-    required: true,
     trim: true,
     lowercase: true,
+  },
+  phoneNumber: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple documents to have a null value for this field
+    trim: true,
   },
   password: {
     type: String,
@@ -41,16 +44,19 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  banned: {
+  phoneVerified: {
     type: Boolean,
     default: false,
   },
+
   loginCount: {
     type: Number,
     default: 0
   },
   loginHistory: [LoginHistorySchema]
 }, { timestamps: true });
+
+UserSchema.plugin(mongoosePaginate);
 
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
@@ -71,6 +77,11 @@ UserSchema.methods.saveLog = async function (ipAddress, device) {
     this.loginHistory.shift();
   }
   return this.save();
+};
+
+UserSchema.statics.isEmailTaken = async function (email, excludeUserId) {
+  const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
+  return !!user;
 };
 
 module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
