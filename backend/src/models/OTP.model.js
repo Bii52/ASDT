@@ -1,18 +1,18 @@
-import mongoose from 'mongoose'
-import bcrypt from 'bcrypt'
+import mongoose from 'mongoose';
 
 const otpSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true,
     trim: true,
     lowercase: true
+  },
+  phoneNumber: {
+    type: String,
+    trim: true,
   },
   otp: {
     type: String,
     required: true,
-    minlength: 6,
-    maxlength: 6
   },
   type: {
     type: String,
@@ -25,18 +25,28 @@ const otpSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
+    expires: 300 // 5 minutes
   },
   expiresAt: {
     type: Date,
     default: () => Date.now() + 5 * 60 * 1000, // 5 minutes from creation
   },
   registrationData: {
-    firstName: { type: String },
-    lastName: { type: String },
+    fullName: { type: String },
     password: { type: String },
+    avatar: { type: String },
+    phoneNumber: { type: String }
   }
-})
+});
+
+otpSchema.pre('save', function(next) {
+  if (!this.email && !this.phoneNumber) {
+    next(new Error('Either email or phone number must be provided.'));
+  } else {
+    next();
+  }
+});
 
 otpSchema.methods.verifyOTP = async function () {
   try {
@@ -45,8 +55,8 @@ otpSchema.methods.verifyOTP = async function () {
   } catch (error) {
     throw new Error('Failed to verify OTP')
   }
-}
+};
 
-const OTPModel = mongoose.model('otps', otpSchema)
+const OTPModel = mongoose.model('otps', otpSchema);
 
-export default OTPModel
+export default OTPModel;
