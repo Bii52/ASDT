@@ -13,7 +13,6 @@ const ProductSchema = new mongoose.Schema({
   },
   uses: {
     type: String,
-    required: true,
   },
   referencePrice: {
     type: Number,

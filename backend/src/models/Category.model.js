@@ -12,6 +12,10 @@ const CategorySchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  url: {
+    type: String,
+    trim: true,
+  }
 }, { timestamps: true });
 
 CategorySchema.statics.isNameTaken = async function (name, excludeCategoryId) {

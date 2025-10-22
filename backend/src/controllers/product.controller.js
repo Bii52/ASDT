@@ -34,10 +34,17 @@ const deleteProduct = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const getProductsByCategoryId = catchAsync(async (req, res) => {
+    const categoryId = req.params.categoryId; 
+    const options = pick(req.query, ['sortBy', 'limit', 'page']);
+    const result = await productService.getProductsByCategory(categoryId, options);
+    res.send(result);
+});
 export const productController = {
   createProduct,
   getProducts,
   getProduct,
   updateProduct,
   deleteProduct,
+  getProductsByCategoryId,
 };

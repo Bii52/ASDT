@@ -2,11 +2,32 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const mongoosePaginate = require('mongoose-paginate-v2');
 
+
 const LoginHistorySchema = new mongoose.Schema({
   ipAddress: { type: String },
   device: { type: String },
   loggedInAt: { type: Date, default: Date.now }
 });
+
+const WorkingHourSchema = new mongoose.Schema({
+    dayOfWeek: {
+        type: String,
+        enum: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        required: true,
+    },
+    startTime: {
+        type: String, 
+        required: true,
+    },
+    endTime: {
+        type: String, // Ví dụ: "17:00"
+        required: true,
+    },
+    slotDuration: {
+        type: Number, // Thời lượng mỗi khe (phút), ví dụ: 30
+        default: 30
+    }
+}, { _id: false }); // Không tạo _id cho các sub-document này
 
 const UserSchema = new mongoose.Schema({
   fullName: {
@@ -15,7 +36,7 @@ const UserSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true, // Make email required
+    required: true,
     unique: true,
     trim: true,
     lowercase: true,
@@ -23,14 +44,14 @@ const UserSchema = new mongoose.Schema({
   phoneNumber: {
     type: String,
     unique: true,
-    sparse: true, // Allows multiple documents to have a null value for this field
+    sparse: true,
     trim: true,
   },
   password: {
     type: String,
     required: true,
     minlength: 6,
-    select: false // Do not return password by default
+    select: false 
   },
   avatar: {
     type: String,
@@ -49,6 +70,39 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
 
+
+  specialty: {
+    type: String,
+    trim: true,
+    required: function() {
+      return this.role === 'doctor';
+    },
+  },
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: 500,
+  },
+  licenseNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+    required: function() {
+      return this.role === 'doctor';
+    },
+  },
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5,
+  },
+  totalRatings: { 
+    type: Number,
+    default: 0,
+  },
+  workingHours: [WorkingHourSchema],
+
   loginCount: {
     type: Number,
     default: 0
@@ -56,8 +110,10 @@ const UserSchema = new mongoose.Schema({
   loginHistory: [LoginHistorySchema]
 }, { timestamps: true });
 
+// Plugin cho phân trang
 UserSchema.plugin(mongoosePaginate);
 
+// Middleware: Mã hóa mật khẩu trước khi lưu
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
@@ -67,13 +123,15 @@ UserSchema.pre('save', async function (next) {
   next();
 });
 
+
 UserSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+
 UserSchema.methods.saveLog = async function (ipAddress, device) {
   this.loginHistory.push({ ipAddress, device });
-  if (this.loginHistory.length > 10) { // Keep last 10 logins
+  if (this.loginHistory.length > 10) { 
     this.loginHistory.shift();
   }
   return this.save();

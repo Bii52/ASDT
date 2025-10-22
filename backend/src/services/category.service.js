@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import { Category } from '~/models/Category.model';
+import Category  from '~/models/Category.model';
 import ApiError from '~/utils/ApiError';
 
 const createCategory = async (categoryBody) => {
@@ -39,6 +39,8 @@ const deleteCategoryById = async (categoryId) => {
   await category.remove();
   return category;
 };
+
+
 
 export const categoryService = {
   createCategory,
