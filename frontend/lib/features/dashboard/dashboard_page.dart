@@ -33,6 +33,12 @@ class DashboardPage extends StatelessWidget {
         color: theme.colorScheme.secondary,
         onTap: () => context.push('/reminders'),
       ),
+      _DashCard(
+        title: 'Sản phẩm',
+        subtitle: 'Danh mục sản phẩm',
+        icon: Icons.shopping_cart_outlined,
+        onTap: () => context.push('/categories'),
+      ),
     ];
 
     return Scaffold(
