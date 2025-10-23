@@ -5,7 +5,7 @@ import './product_service.dart';
 class ProductsPage extends StatefulWidget {
   final String categoryId;
 
-  ProductsPage({required this.categoryId});
+  const ProductsPage({super.key, required this.categoryId});
 
   @override
   _ProductsPageState createState() => _ProductsPageState();
@@ -25,7 +25,7 @@ class _ProductsPageState extends State<ProductsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Products'),
+        title: const Text('Products'),
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _products,
@@ -47,7 +47,7 @@ class _ProductsPageState extends State<ProductsPage> {
               child: Text('${snapshot.error}'),
             );
           }
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
         },

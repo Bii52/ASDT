@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductService {
-  final String baseUrl = 'http://10.0.2.2:5000/api';
+  final String baseUrl = 'http://192.168.1.5:5000/api';
 
   Future<List<dynamic>> getProductsByCategoryId(String categoryId) async {
     final prefs = await SharedPreferences.getInstance();

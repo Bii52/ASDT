@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-// TODO: Di chuyển các hằng số này vào một tệp cấu hình riêng
+
 const String apiBaseUrl = 'http://10.0.2.2:5000';
 
 class CreateAppointmentPage extends StatefulWidget {
@@ -25,8 +25,6 @@ class _CreateAppointmentPageState extends State<CreateAppointmentPage> {
   bool _isLoading = false;
   String? _error;
 
-  // TODO: Thay thế bằng token của người dùng đã đăng nhập
-  // Token nên được lấy từ một nơi quản lý trạng thái hoặc bộ nhớ an toàn
   final String _authToken = "YOUR_AUTH_TOKEN_HERE"; 
 
   @override
@@ -130,9 +128,7 @@ class _CreateAppointmentPageState extends State<CreateAppointmentPage> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // TODO: Thay vì hiển thị ID, bạn nên truy vấn thông tin bác sĩ (tên, chuyên khoa) để hiển thị
             Text('Đặt lịch hẹn với Bác sĩ', style: Theme.of(context).textTheme.titleLarge),
-            // Text(widget.doctorId, style: Theme.of(context).textTheme.bodySmall), // Có thể hiển thị ID một cách kín đáo hơn nếu cần
             const SizedBox(height: 16),
             // --- Chọn ngày ---
             ListTile(

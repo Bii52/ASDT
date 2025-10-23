@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
-// TODO: Di chuyển vào tệp cấu hình
+
 const String socketUrl = 'http://10.0.2.2:5000';
 
 class SocketService {
@@ -23,9 +23,9 @@ class SocketService {
     _socket = io.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
-      'path': '/socket.io', // Đảm bảo path khớp với server
+      'path': '/socket.io', 
       'auth': {
-        'token': authToken, // Gửi token để xác thực
+        'token': authToken, 
       }
     });
 
@@ -35,8 +35,7 @@ class SocketService {
 
     _socket!.on('online_doctors_update', (data) {
       debugPrint('Online doctors: $data');
-      // TODO: Sử dụng một StateNotifierProvider (Riverpod) để giữ danh sách bác sĩ
-      // và thông báo cho UI cập nhật.
+
     });
 
     _socket!.onDisconnect((_) => debugPrint('Socket disconnected'));

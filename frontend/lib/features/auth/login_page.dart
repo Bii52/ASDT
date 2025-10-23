@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import '../articles/config.dart'; // Import tệp config
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginScreenState extends State<LoginScreen> {
   final email = TextEditingController();
   final pass = TextEditingController();
   bool loading = false;
@@ -30,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:5000/api/users/login'),
+        Uri.parse('$apiBaseUrl/api/users/login'), // Sử dụng apiBaseUrl
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

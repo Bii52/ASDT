@@ -4,6 +4,8 @@ import './category_service.dart';
 import '../products/products_page.dart';
 
 class CategoriesPage extends StatefulWidget {
+  const CategoriesPage({super.key});
+
   @override
   _CategoriesPageState createState() => _CategoriesPageState();
 }
@@ -22,7 +24,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Categories'),
+        title: const Text('Categories'),
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _categories,
@@ -50,7 +52,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
               child: Text('${snapshot.error}'),
             );
           }
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
         },
