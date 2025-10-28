@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import './category_service.dart';
+import '../../services/category_service.dart';
 import '../products/products_page.dart';
 
 class CategoriesPage extends StatefulWidget {

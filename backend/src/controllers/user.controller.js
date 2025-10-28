@@ -218,6 +218,97 @@ const updateUser = catchAsync(async (req, res) => {
   res.send(user);
 });
 
+const getDoctors = async (req, res, next) => {
+  try {
+    const doctors = await userService.getDoctors();
+    res.status(StatusCodes.OK).json(doctors);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getOnlineDoctors = async (req, res, next) => {
+  try {
+    // Import onlineUsers from socket service
+    const { onlineUsers } = await import('../services/socket.service.js');
+    console.log('Debug - Online users:', Array.from(onlineUsers.entries()));
+    const doctors = await userService.getOnlineDoctors(onlineUsers);
+    console.log('Debug - Online doctors result:', doctors);
+    res.status(StatusCodes.OK).json(doctors);
+  } catch (error) {
+    console.error('Debug - Error in getOnlineDoctors:', error);
+    next(error);
+  }
+};
+
+const debugOnlineUsers = async (req, res, next) => {
+  try {
+    const { onlineUsers } = await import('../services/socket.service.js');
+    const onlineUsersArray = Array.from(onlineUsers.entries()).map(([id, info]) => ({
+      userId: id,
+      socketId: info.socketId,
+      userType: info.userType
+    }));
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      onlineUsers: onlineUsersArray,
+      totalOnline: onlineUsers.size,
+      onlineDoctors: onlineUsersArray.filter(user => user.userType === 'doctor')
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Temporary test endpoint to create a test doctor user
+const createTestDoctor = async (req, res, next) => {
+  try {
+    const bcrypt = await import('bcryptjs');
+    const UserModel = (await import('../models/user.model.js')).default;
+    
+    // Check if user already exists
+    let user = await UserModel.findOne({ email: 'doctor@example.com' });
+    
+    if (user) {
+      // Update existing user
+      user.emailVerified = true;
+      user.role = 'doctor';
+      user.specialty = 'General Medicine';
+      user.licenseNumber = 'DOC123456';
+      await user.save();
+      res.status(StatusCodes.OK).json({
+        success: true,
+        message: 'Test doctor user updated successfully'
+      });
+    } else {
+      // Create new user
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      user = new UserModel({
+        fullName: 'Test Doctor',
+        email: 'doctor@example.com',
+        password: hashedPassword,
+        role: 'doctor',
+        emailVerified: true,
+        specialty: 'General Medicine',
+        licenseNumber: 'DOC123456',
+        bio: 'Test doctor for debugging',
+        averageRating: 0,
+        totalRatings: 0
+      });
+      
+      await user.save();
+      res.status(StatusCodes.CREATED).json({
+        success: true,
+        message: 'Test doctor user created successfully'
+      });
+    }
+  } catch (error) {
+    console.error('Error creating test doctor:', error);
+    next(error);
+  }
+};
+
 const deleteUser = catchAsync(async (req, res) => {
   await userService.deleteUserById(req.params.userId);
   res.status(httpStatus.NO_CONTENT).send();
@@ -240,5 +331,9 @@ export const userController = {
   getUsers,
   getUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getDoctors,
+  getOnlineDoctors,
+  debugOnlineUsers,
+  createTestDoctor
 }

@@ -19,13 +19,21 @@ router.post('/forgot-password', userController.sendPasswordResetOTP)
 router.post('/reset-password', userController.resetPassword)
 router.put('/change-password', verifyToken, userController.changePassword)
 
-router.get('/profile', verifyToken, userController.getProfile);
+router.get('/me', verifyToken, userController.getProfile);
 
 // I will also add back the other routes that were there before, in case the user deleted them by mistake
 router.post('/verify-registration', validate(verifyRegistrationSchema), userController.verifyRegistration);
 router.get('/oauth/callback', userController.oAuthLoginCallback);
 router.get('/admin/test', verifyToken, verifyAdmin, userController.adminTest);
 router.get('/doctor/test', verifyToken, verifyRole(['doctor']), userController.doctorTest);
+
+// --- Get Doctors ---
+router.get('/doctors', verifyToken, userController.getDoctors);
+router.get('/doctors/online', verifyToken, userController.getOnlineDoctors);
+router.get('/debug/online-users', verifyToken, userController.debugOnlineUsers);
+
+// --- Test Endpoints ---
+router.post('/test/create-doctor', userController.createTestDoctor);
 
 // --- Admin User Management ---
 router.get('/admin/users', verifyToken, verifyAdmin, userController.getUsers);

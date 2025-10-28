@@ -1,9 +1,17 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiService {
-  static const String _baseUrl = 'http://192.168.1.5:3000/api'; // Replace with your backend URL
+  static String get _baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:5000/api';
+    } else {
+      return 'http://192.168.100.191:5000/api';
+    }
+  }
+  
   static String? _authToken;
 
   static Future<Map<String, String>> _getHeaders() async {
@@ -15,6 +23,10 @@ class ApiService {
       headers['Authorization'] = 'Bearer $_authToken';
     }
     return headers;
+  }
+
+  static Future<Map<String, String>> getHeaders() async {
+    return await _getHeaders();
   }
 
   static Future<void> _loadAuthToken() async {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:frontend/features/auth/user_service.dart';
+import 'package:frontend/services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final response = await UserService.getProfile();
     if (response['success']) {
       setState(() {
-        _userProfile = response['data']['user']; // Assuming the user data is under a 'user' key
+        _userProfile = response['user']; // Fix: access user data directly
         _isLoading = false;
       });
     } else {
@@ -72,9 +72,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Name: ${_userProfile!['name']}', style: const TextStyle(fontSize: 18)),
+                          Text('Name: ${_userProfile!['fullName'] ?? 'N/A'}', style: const TextStyle(fontSize: 18)),
                           const SizedBox(height: 10),
-                          Text('Email: ${_userProfile!['email']}', style: const TextStyle(fontSize: 18)),
+                          Text('Email: ${_userProfile!['email'] ?? 'N/A'}', style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 10),
+                          Text('Role: ${_userProfile!['role'] ?? 'N/A'}', style: const TextStyle(fontSize: 18)),
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: _logout,

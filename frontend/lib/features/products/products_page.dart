@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
-import './product_service.dart';
+import '../../services/product_service.dart';
 
 class ProductsPage extends StatefulWidget {
   final String categoryId;
@@ -12,13 +11,21 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  final ProductService _productService = ProductService();
   late Future<List<dynamic>> _products;
 
   @override
   void initState() {
     super.initState();
-    _products = _productService.getProductsByCategoryId(widget.categoryId);
+    _products = _loadProducts();
+  }
+
+  Future<List<dynamic>> _loadProducts() async {
+    final response = await ProductService.getProducts(category: widget.categoryId);
+    if (response['success'] == true && response['data'] != null) {
+      return response['data']['docs'] as List<dynamic>;
+    } else {
+      throw Exception('Failed to load products: ${response['message']}');
+    }
   }
 
   @override
@@ -30,26 +37,45 @@ class _ProductsPageState extends State<ProductsPage> {
       body: FutureBuilder<List<dynamic>>(
         future: _products,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final product = snapshot.data![index];
-                return ListTile(
-                  title: Text(product['name']),
-                  subtitle: Text('Price: ${product['referencePrice']}'),
-                  leading: Image.network(product['image']),
-                );
-              },
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
             );
           } else if (snapshot.hasError) {
             return Center(
-              child: Text('${snapshot.error}'),
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else if (snapshot.hasData) {
+            final products = snapshot.data!;
+            if (products.isEmpty) {
+              return const Center(
+                child: Text('No products found in this category.'),
+              );
+            }
+            return ListView.builder(
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return ListTile(
+                  title: Text(product['name'] ?? 'No name'),
+                  subtitle: Text('Price: ${product['referencePrice'] ?? 'N/A'}'),
+                  leading: product['image'] != null
+                      ? Image.network(
+                          product['image'],
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+                        )
+                      : const Icon(Icons.image_not_supported),
+                );
+              },
+            );
+          } else {
+            return const Center(
+              child: Text('No products found.'),
             );
           }
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
         },
       ),
     );

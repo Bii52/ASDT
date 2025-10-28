@@ -182,12 +182,153 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
+const getDoctors = async () => {
+  try {
+    const doctors = await UserModel.find({ role: 'doctor' })
+      .select('_id fullName email avatar specialization')
+      .lean();
+    return doctors;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to get doctors');
+  }
+};
+
+const getOnlineDoctors = async (onlineUsers) => {
+  try {
+    // Get online doctor IDs from socket service
+    const onlineDoctorIds = Array.from(onlineUsers.entries())
+      .filter(([_, info]) => info.userType === 'doctor')
+      .map(([id]) => id);
+
+    if (onlineDoctorIds.length === 0) {
+      return [];
+    }
+
+    // Get doctor details for online doctors
+    const doctors = await UserModel.find({ 
+      _id: { $in: onlineDoctorIds },
+      role: 'doctor' 
+    })
+      .select('_id fullName email avatar specialization')
+      .lean();
+    
+    return doctors;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to get online doctors');
+  }
+};
+
+const getUserProfile = async (userId) => {
+  try {
+    const user = await UserModel.findById(userId)
+      .select('_id fullName email avatar role specialization phoneNumber')
+      .lean();
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+    return user;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to get user profile');
+  }
+};
+
+const revokeRefreshToken = async (userId) => {
+  try {
+    await RefreshTokenModel.deleteMany({ userId });
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to revoke refresh token');
+  }
+};
+
+const requestToken = async (tokenData) => {
+  try {
+    const { refreshToken } = tokenData;
+    const tokenRecord = await RefreshTokenModel.findOne({ token: refreshToken });
+    
+    if (!tokenRecord) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid refresh token');
+    }
+    
+    const user = await UserModel.findById(tokenRecord.userId);
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+    
+    const { AccessToken } = jwtGenerate({ id: user._id, email: user.email, role: user.role });
+    return AccessToken;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to request new token');
+  }
+};
+
+const changePassword = async (userId, passwordData) => {
+  try {
+    const { currentPassword, newPassword } = passwordData;
+    const user = await UserModel.findById(userId).select('+password');
+    
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+    
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Current password is incorrect');
+    }
+    
+    user.password = newPassword;
+    await user.save();
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to change password');
+  }
+};
+
+const resetPassword = async (resetData) => {
+  try {
+    const { email, otp, newPassword } = resetData;
+    
+    const otpRecord = await OTPModel.findOne({ 
+      email, 
+      otp, 
+      type: 'password-reset', 
+      expiresAt: { $gt: new Date() } 
+    });
+    
+    if (!otpRecord) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid or expired OTP');
+    }
+    
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+    
+    user.password = newPassword;
+    await user.save();
+    
+    await OTPModel.deleteOne({ _id: otpRecord._id });
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to reset password');
+  }
+};
+
 export const userService = {
   register,
-  verifyRegistration, // renamed from verifyEmail
+  verifyRegistration,
   login,
+  logout: revokeRefreshToken,
+  requestToken,
+  changePassword,
+  sendPasswordResetOTP,
+  resetPassword,
+  getUserProfile,
   queryUsers,
   getUserById,
   updateUserById,
-  deleteUserById
+  deleteUserById,
+  getDoctors,
+  getOnlineDoctors
 }

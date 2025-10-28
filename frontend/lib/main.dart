@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 void main() {
-  // Đảm bảo Flutter bindings đã được khởi tạo trước khi chạy app
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: MyApp()));
+  setPathUrlStrategy(); // <-- Thêm dòng này
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }

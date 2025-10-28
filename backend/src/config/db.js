@@ -7,7 +7,9 @@ const DATABASE_NAME = process.env.DATABASE_NAME;
 
 const connectDB = async () => {
   await mongoose.connect(MONGODB_URI, {
-    dbName: DATABASE_NAME
+    dbName: DATABASE_NAME,
+    tls: true,
+    tlsAllowInvalidCertificates: true,
   });
 };
 

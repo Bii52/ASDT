@@ -1,7 +1,7 @@
-import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
+import 'package:frontend/services/user_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,78 +10,404 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final name = TextEditingController();
-  final email = TextEditingController();
-  final pass = TextEditingController();
-  bool loading = false;
-  String? err;
+  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _pass = TextEditingController();
+  final _pass2 = TextEditingController();
 
-  Future<void> _register() async {
-    setState(() {
-      loading = true;
-      err = null;
-    });
+  bool _loading = false;
+  bool _obscure1 = true;
+  bool _obscure2 = true;
+  String? _err;
+  bool _agree = true; // giả lập: đã đồng ý điều khoản
 
-    try {
-      if (name.text.isEmpty || email.text.isEmpty || pass.text.isEmpty) {
-        setState(() {
-          err = 'Vui lòng nhập đầy đủ thông tin';
-        });
-        return;
-      }
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _pass.dispose();
+    _pass2.dispose();
+    super.dispose();
+  }
 
-      final response = await http.post(
-        Uri.parse('http://192.168.1.5:5000/api/users/register'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'name': name.text,
-          'email': email.text,
-          'password': pass.text,
-        }),
-      );
+  String? _validateName(String? v) {
+    final value = (v ?? '').trim();
+    if (value.isEmpty) return 'Vui lòng nhập họ tên';
+    if (value.length < 2) return 'Họ tên quá ngắn';
+    return null;
+  }
 
-      if (response.statusCode == 201) {
-        if (!mounted) return;
-        context.go('/login');
-      } else {
-        final data = jsonDecode(response.body);
-        setState(() {
-          err = data['message'] ?? 'Đăng ký thất bại';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        err = 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.';
-      });
-    } finally {
-      setState(() {
-        loading = false;
-      });
+  String? _validateEmail(String? v) {
+    final value = (v ?? '').trim();
+    if (value.isEmpty) return 'Vui lòng nhập email';
+    final re = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (!re.hasMatch(value)) return 'Email không hợp lệ';
+    return null;
+  }
+
+  String? _validatePassword(String? v) {
+    final value = (v ?? '');
+    if (value.isEmpty) return 'Vui lòng nhập mật khẩu';
+    if (value.length < 6) return 'Mật khẩu tối thiểu 6 ký tự';
+    return null;
+  }
+
+  String? _validateConfirm(String? v) {
+    if (v == null || v.isEmpty) return 'Vui lòng nhập lại mật khẩu';
+    if (v != _pass.text) return 'Mật khẩu nhập lại không khớp';
+    return null;
+  }
+
+  Future<void> _onSubmit() async {
+    setState(() => _err = null);
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    if (!_agree) {
+      setState(() => _err = 'Bạn cần đồng ý điều khoản sử dụng'); 
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    final response = await UserService.register(
+      _email.text,
+      _pass.text,
+      _name.text,
+    );
+
+    if (!mounted) return; // Always check mounted after async gap
+
+    setState(() => _loading = false);
+
+    if (response['success']) {
+      // Thành công → chuyển đến trang OTP verification
+      context.go('/otp', extra: {'email': _email.text, 'type': 'registration'});
+    } else {
+      setState(() => _err = response['message'] ?? 'Đăng ký thất bại. Vui lòng thử lại.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    final isWide = size.width >= 880;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Đăng ký')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(children: [
-          TextField(controller: name, decoration: const InputDecoration(labelText: 'Họ tên')),
-          const SizedBox(height: 8),
-          TextField(controller: email, decoration: const InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress),
-          const SizedBox(height: 8),
-          TextField(controller: pass, obscureText: true, decoration: const InputDecoration(labelText: 'Mật khẩu')),
-          const SizedBox(height: 16),
-          if (err != null) Text(err!, style: const TextStyle(color: Colors.red)),
-          const SizedBox(height: 8),
-          FilledButton(
-            onPressed: loading ? null : _register,
-            child: loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Tạo tài khoản'),
+
+      body: Stack(
+        children: [
+          // Nền gradient nhẹ
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    theme.colorScheme.primary.withAlpha((255 * 0.10).round()),
+                    theme.colorScheme.secondaryContainer.withAlpha((255 * 0.25).round()),
+                    theme.colorScheme.surfaceTint.withAlpha((255 * 0.08).round()),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ]),
+          // Vệt trang trí
+          Positioned(top: -60, left: -40, child: _Blob(size: size.width * 0.35, color: theme.colorScheme.primary.withAlpha((255 * 0.16).round()))),
+          Positioned(bottom: -80, right: -50, child: _Blob(size: size.width * 0.40, color: theme.colorScheme.tertiary.withAlpha((255 * 0.14).round()))),
+
+          SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: isWide
+                      ? Row(
+                          children: [
+                            Expanded(child: _SideHero()),
+                            const SizedBox(width: 28),
+                            Expanded(child: _CardForm(theme: theme, form: buildForm(theme))),
+                          ],
+                        )
+                      : _CardForm(theme: theme, form: buildForm(theme)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildForm(ThemeData theme) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Logo + tiêu đề
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: theme.colorScheme.primary.withAlpha((255 * 0.12).round())),
+            child: Icon(Icons.person_add_alt_1_rounded, size: 32, color: theme.colorScheme.primary),
+          ),
+          const SizedBox(height: 14),
+          Text('Tạo tài khoản', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.2)),
+          const SizedBox(height: 6),
+          Text('Bắt đầu hành trình chăm sóc sức khỏe của bạn', style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 18),
+
+          if (_err != null)
+            Padding(padding: const EdgeInsets.only(bottom: 12), child: _ErrorBanner(message: _err!)),
+
+          // Họ tên
+          TextFormField(
+            controller: _name,
+            textInputAction: TextInputAction.next,
+            validator: _validateName,
+            decoration: InputDecoration(
+              labelText: 'Họ tên',
+              prefixIcon: const Icon(Icons.badge_outlined),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Email
+          TextFormField(
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            validator: _validateEmail,
+            decoration: InputDecoration(
+              labelText: 'Email',
+              prefixIcon: const Icon(Icons.alternate_email_rounded),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Mật khẩu
+          TextFormField(
+            controller: _pass,
+            obscureText: _obscure1,
+            textInputAction: TextInputAction.next,
+            validator: _validatePassword,
+            decoration: InputDecoration(
+              labelText: 'Mật khẩu',
+              prefixIcon: const Icon(Icons.lock_rounded),
+              suffixIcon: IconButton(
+                onPressed: () => setState(() => _obscure1 = !_obscure1),
+                icon: Icon(_obscure1 ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Xác nhận mật khẩu
+          TextFormField(
+            controller: _pass2,
+            obscureText: _obscure2,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => !_loading ? _onSubmit() : null,
+            validator: _validateConfirm,
+            decoration: InputDecoration(
+              labelText: 'Nhập lại mật khẩu',
+              prefixIcon: const Icon(Icons.lock_reset_rounded),
+              suffixIcon: IconButton(
+                onPressed: () => setState(() => _obscure2 = !_obscure2),
+                icon: Icon(_obscure2 ? Icons.visibility_off_rounded : Icons.visibility_rounded),
+              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+          // Agree terms (mock)
+          Row(
+            children: [
+              Checkbox(
+                value: _agree,
+                onChanged: (v) => setState(() => _agree = v ?? false),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: 'Tôi đồng ý với ',
+                    children: [
+                      WidgetSpan(
+                        child: GestureDetector(
+                          onTap: () {}, // mở trang điều khoản khi có
+                          child: Text('Điều khoản sử dụng', style: TextStyle(color: theme.colorScheme.primary)),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+          // Submit
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: _loading ? null : _onSubmit,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: _loading
+                  ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Tạo tài khoản'),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Đã có tài khoản?', style: theme.textTheme.bodyMedium),
+              TextButton(
+                onPressed: () => context.go('/login'),
+                child: const Text('Đăng nhập'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CardForm extends StatelessWidget {
+  const _CardForm({required this.theme, required this.form});
+  final ThemeData theme;
+  final Widget form;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 350),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                color: theme.colorScheme.surface.withAlpha((255 * 0.68).round()),
+                border: Border.all(color: theme.colorScheme.outlineVariant.withAlpha((255 * 0.5).round())),
+                boxShadow: [BoxShadow(color: Colors.black.withAlpha((255 * 0.06).round()), blurRadius: 24, offset: const Offset(0, 8))],
+              ),
+              child: form,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SideHero extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.92, end: 1),
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.easeOutCubic,
+      builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+      child: AspectRatio(
+        aspectRatio: 4 / 3,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primaryContainer.withAlpha((255 * 0.70).round()),
+                theme.colorScheme.secondaryContainer.withAlpha((255 * 0.70).round()),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(Icons.person_rounded, size: 160, color: theme.colorScheme.onPrimaryContainer.withAlpha((255 * 0.92).round())),
+              Positioned(
+                bottom: 18,
+                child: Text(
+                  'Tạo tài khoản mới',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer.withAlpha((255 * 0.92).round()),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Blob extends StatelessWidget {
+  final double size;
+  final Color color;
+  const _Blob({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOutCubic,
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color, shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: color.withAlpha((255 * 0.6).round()), blurRadius: 50, spreadRadius: 10)],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  final String message;
+  const _ErrorBanner({required this.message});
+  @override
+  Widget build(BuildContext context) {
+    final c = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: c.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: c.error.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: c.error),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message, style: TextStyle(color: c.onErrorContainer))),
+        ],
       ),
     );
   }

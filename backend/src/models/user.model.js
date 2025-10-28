@@ -58,7 +58,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin', 'doctor'],
+    enum: ['user', 'admin', 'doctor', 'pharmacist'],
     default: 'user',
   },
   emailVerified: {
@@ -102,6 +102,27 @@ const UserSchema = new mongoose.Schema({
     default: 0,
   },
   workingHours: [WorkingHourSchema],
+
+  // Pharmacist specific fields
+  pharmacyName: {
+    type: String,
+    trim: true,
+    required: function() {
+      return this.role === 'pharmacist';
+    },
+  },
+  pharmacyLicense: {
+    type: String,
+    unique: true,
+    sparse: true,
+    required: function() {
+      return this.role === 'pharmacist';
+    },
+  },
+  pharmacyAddress: {
+    type: String,
+    trim: true,
+  },
 
   loginCount: {
     type: Number,

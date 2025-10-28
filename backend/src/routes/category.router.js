@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.post('/', verifyToken, verifyAdmin, validate(categoryValidation.createCategory), categoryController.createCategory);
 router.get('/', verifyToken, validate(categoryValidation.getCategories), categoryController.getCategories);
+router.get('/test', categoryController.getCategories); // Test endpoint không cần auth
 router.get('/:categoryId/products', validate(categoryValidation.getCategory), productController.getProductsByCategoryId);
 router.get('/:categoryId', verifyToken, validate(categoryValidation.getCategory), categoryController.getCategory);
 router.patch('/:categoryId', verifyToken, verifyAdmin, validate(categoryValidation.updateCategory), categoryController.updateCategory);

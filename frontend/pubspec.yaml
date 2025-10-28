@@ -19,6 +19,7 @@ dependencies:
   shared_preferences: ^2.2.3
   socket_io_client: ^3.1.2
   intl: ^0.20.2
+  url_strategy: ^0.2.0
 
 dev_dependencies:
   flutter_test:
