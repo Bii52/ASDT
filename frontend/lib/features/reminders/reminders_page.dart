@@ -20,7 +20,7 @@ class RemindersPage extends ConsumerWidget {
                 return ListTile(
                   leading: const Icon(Icons.alarm),
                   title: Text(r.medicine),
-                  subtitle: Text(TimeOfDay.fromDateTime(r.time).format(context)),
+                  subtitle: Text('Số viên: ${r.pills} • Giờ: ${r.times.join(', ')}'),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => ref.read(remindersProvider.notifier).remove(r.id),

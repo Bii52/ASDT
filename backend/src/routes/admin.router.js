@@ -52,14 +52,7 @@ router.put('/doctors/:doctorId/reject',
   adminController.rejectDoctor
 )
 
-// Product Monitoring Routes
-router.get('/products', adminController.getProducts)
-router.get('/products/review', adminController.getProductsForReview)
-router.put('/products/:productId/approve', adminController.approveProduct)
-router.put('/products/:productId/reject',
-  validationMiddleware(adminValidation.rejectProduct),
-  adminController.rejectProduct
-)
+
 
 // Article Management Routes
 router.post('/articles',

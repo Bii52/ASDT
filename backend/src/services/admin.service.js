@@ -7,7 +7,23 @@ import pick from '~/utils/pick'
 
 // User Management
 const queryUsers = async (filter, options) => {
-  const result = await UserModel.paginate(filter, options)
+  const { q, role, emailVerified, phoneVerified, isLocked } = filter || {}
+
+  const conditions = {}
+  if (role) conditions.role = role
+  if (typeof emailVerified !== 'undefined') conditions.emailVerified = emailVerified === 'true' || emailVerified === true
+  if (typeof phoneVerified !== 'undefined') conditions.phoneVerified = phoneVerified === 'true' || phoneVerified === true
+  if (typeof isLocked !== 'undefined') conditions.isLocked = isLocked === 'true' || isLocked === true
+
+  if (q && typeof q === 'string' && q.trim() !== '') {
+    const regex = new RegExp(q.trim(), 'i')
+    conditions.$or = [
+      { fullName: { $regex: regex } },
+      { email: { $regex: regex } }
+    ]
+  }
+
+  const result = await UserModel.paginate(conditions, options)
   return result
 }
 
@@ -115,10 +131,17 @@ const rejectDoctor = async (doctorId, reason) => {
 }
 
 const createDoctor = async (doctorData) => {
-  const { email } = doctorData
+  const { email, licenseNumber } = doctorData
   const existingUser = await UserModel.findOne({ email })
   if (existingUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already taken')
+  }
+
+  if (licenseNumber) {
+    const existingLicense = await UserModel.findOne({ licenseNumber })
+    if (existingLicense) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'License number already taken')
+    }
   }
 
   const doctor = await UserModel.create({

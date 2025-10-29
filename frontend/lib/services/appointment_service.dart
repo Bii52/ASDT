@@ -6,7 +6,7 @@ import 'api_service.dart';
 class AppointmentService {
   static String get _baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:5000/api';
+      return 'http://192.168.100.191:5000/api';
     } else {
       return 'http://192.168.100.191:5000/api';
     }

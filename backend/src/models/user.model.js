@@ -71,6 +71,23 @@ const UserSchema = new mongoose.Schema({
   },
 
 
+  // Account lock status managed by admin
+  isLocked: {
+    type: Boolean,
+    default: false
+  },
+  lockReason: {
+    type: String,
+    trim: true,
+    maxlength: 200,
+    default: null
+  },
+  lockedAt: {
+    type: Date,
+    default: null
+  },
+
+
   specialty: {
     type: String,
     trim: true,

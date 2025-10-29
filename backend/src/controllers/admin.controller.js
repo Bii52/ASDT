@@ -6,7 +6,7 @@ import pick from '~/utils/pick'
 
 // Quản lý người dùng
 const getUsers = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['role', 'emailVerified', 'phoneVerified'])
+  const filter = pick(req.query, ['role', 'emailVerified', 'phoneVerified', 'isLocked', 'q'])
   const options = pick(req.query, ['sortBy', 'limit', 'page'])
   const result = await adminService.queryUsers(filter, options)
   res.status(StatusCodes.OK).json({
@@ -243,11 +243,7 @@ export const adminController = {
   rejectDoctor,
   createDoctor,
   
-  // Product Monitoring
-  getProducts,
-  getProductsForReview,
-  approveProduct,
-  rejectProduct,
+
   
   // Article Management
   createArticle,

@@ -62,9 +62,9 @@ const createDoctor = {
     fullName: Joi.string().required().trim().min(2).max(100),
     email: Joi.string().required().email().trim().lowercase(),
     password: Joi.string().required().min(8),
-    specialty: Joi.string().optional().trim(),
+    specialty: Joi.string().required().trim(),
     bio: Joi.string().optional().trim().max(500),
-    licenseNumber: Joi.string().optional().trim()
+    licenseNumber: Joi.string().required().trim()
   })
 }
 

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'api_service.dart';
 
 class ProductService {
-  static const String _baseUrl = kIsWeb ? 'http://localhost:5000/api' : 'http://192.168.100.191:5000/api';
+  static const String _baseUrl = kIsWeb ? 'http://192.168.100.191:5000/api' : 'http://192.168.100.191:5000/api';
 
   static Future<Map<String, dynamic>> _handleApiResponse(http.Response response) async {
     if (response.statusCode >= 200 && response.statusCode < 500) {
@@ -63,6 +63,36 @@ class ProductService {
     } catch (e) {
       debugPrint('Get product error: $e');
       return {'success': false, 'message': 'Failed to load product: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> createProduct(Map<String, dynamic> payload) async {
+    try {
+      final response = await ApiService.post('products', payload);
+      return await _handleApiResponse(response);
+    } catch (e) {
+      debugPrint('Create product error: $e');
+      return {'success': false, 'message': 'Failed to create product: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateProduct(String productId, Map<String, dynamic> payload) async {
+    try {
+      final response = await ApiService.patch('products/$productId', payload);
+      return await _handleApiResponse(response);
+    } catch (e) {
+      debugPrint('Update product error: $e');
+      return {'success': false, 'message': 'Failed to update product: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteProduct(String productId) async {
+    try {
+      final response = await ApiService.delete('products/$productId');
+      return await _handleApiResponse(response);
+    } catch (e) {
+      debugPrint('Delete product error: $e');
+      return {'success': false, 'message': 'Failed to delete product: $e'};
     }
   }
 

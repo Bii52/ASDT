@@ -28,6 +28,8 @@ class AdminService {
     String? role,
     bool? emailVerified,
     bool? phoneVerified,
+    bool? isLocked,
+    String? q,
   }) async {
     try {
       String url = 'admin/users?page=$page&limit=$limit';
@@ -35,6 +37,8 @@ class AdminService {
       if (role != null) url += '&role=$role';
       if (emailVerified != null) url += '&emailVerified=$emailVerified';
       if (phoneVerified != null) url += '&phoneVerified=$phoneVerified';
+      if (isLocked != null) url += '&isLocked=$isLocked';
+      if (q != null && q.isNotEmpty) url += '&q=' + Uri.encodeQueryComponent(q);
       
       final response = await ApiService.get(url);
       return json.decode(response.body);
@@ -113,6 +117,16 @@ class AdminService {
       return json.decode(response.body);
     } catch (e) {
       return {'success': false, 'message': 'Lỗi khi từ chối bác sĩ: $e'};
+    }
+  }
+
+  // Create Doctor directly (auto-approved on backend)
+  static Future<Map<String, dynamic>> createDoctor(Map<String, dynamic> data) async {
+    try {
+      final response = await ApiService.post('admin/doctors', data);
+      return json.decode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi khi thêm bác sĩ: $e'};
     }
   }
 
