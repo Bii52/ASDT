@@ -114,6 +114,22 @@ const rejectDoctor = async (doctorId, reason) => {
   return doctor
 }
 
+const createDoctor = async (doctorData) => {
+  const { email } = doctorData
+  const existingUser = await UserModel.findOne({ email })
+  if (existingUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already taken')
+  }
+
+  const doctor = await UserModel.create({
+    ...doctorData,
+    role: 'doctor',
+    doctorStatus: 'approved' // Automatically approved since it is created by admin
+  })
+
+  return doctor
+}
+
 // Product Monitoring
 const getProductsForReview = async (query) => {
   const filter = {
@@ -167,6 +183,11 @@ const rejectProduct = async (productId, reason) => {
   }
   
   return product
+}
+
+const getProducts = async (filter, options) => {
+  const result = await ProductModel.paginate(filter, options)
+  return result
 }
 
 // Article Management (Mock implementation - you can create Article model later)
@@ -436,8 +457,10 @@ export const adminService = {
   getPendingDoctors,
   approveDoctor,
   rejectDoctor,
+  createDoctor,
   
   // Product Monitoring
+  getProducts,
   getProductsForReview,
   approveProduct,
   rejectProduct,

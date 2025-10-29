@@ -5,9 +5,34 @@ import ApiError from '~/utils/ApiError.js';
 const getConversations = async (userId) => {
   const conversations = await Conversation.find({ participants: userId })
     .populate('participants', 'fullName avatar')
-    .populate('lastMessage');
+    .populate({
+      path: 'lastMessage',
+      populate: { path: 'sender', select: 'fullName avatar' }
+    });
   return conversations;
 };
+
+const getOrCreateConversation = async (userId, otherUserId) => {
+  let conversation = await Conversation.findOne({
+    participants: { $all: [userId, otherUserId] }
+  })
+    .populate('participants', 'fullName avatar')
+    .populate({
+      path: 'lastMessage',
+      populate: { path: 'sender', select: 'fullName avatar' }
+    });
+
+  if (!conversation) {
+    conversation = await Conversation.create({ participants: [userId, otherUserId] })
+    conversation = await Conversation.findById(conversation._id)
+      .populate('participants', 'fullName avatar')
+      .populate({
+        path: 'lastMessage',
+        populate: { path: 'sender', select: 'fullName avatar' }
+      });
+  }
+  return conversation;
+}
 
 const getMessages = async (conversationId) => {
   const messages = await Message.find({ conversationId })
@@ -47,6 +72,7 @@ const sendMessage = async (senderId, recipientId, content, io, onlineUsers) => {
 
 export const chatService = {
   getConversations,
+  getOrCreateConversation,
   getMessages,
   sendMessage,
 };

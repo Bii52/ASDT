@@ -8,6 +8,7 @@ import '../providers/chat_provider.dart';
 import '../../../services/chat_service.dart';
 import '../../../services/auth_service.dart';
 import '../models/conversation.dart';
+import 'chat_detail_page.dart';
 
 class StartChatPage extends ConsumerStatefulWidget {
   const StartChatPage({super.key});
@@ -20,6 +21,7 @@ class _StartChatPageState extends ConsumerState<StartChatPage> {
   List<Map<String, dynamic>> _doctors = [];
   bool _isLoading = true;
   String? _error;
+  bool _startingChat = false;
 
   @override
   void initState() {
@@ -65,32 +67,25 @@ class _StartChatPageState extends ConsumerState<StartChatPage> {
 
   Future<void> _startChatWithDoctor(String doctorId, String doctorName) async {
     try {
-      // Gửi tin nhắn đầu tiên để tạo cuộc trò chuyện
-      final message = await ChatService.sendMessage(
-        doctorId,
-        'Xin chào bác sĩ! Tôi muốn được tư vấn.',
-      );
+      if (_startingChat) return;
+      setState(() { _startingChat = true; });
+      // Tạo hoặc lấy conversation, KHÔNG gửi tin nhắn mẫu
+      final conversation = await ChatService.createOrGetConversation(doctorId);
 
-      // Tạo conversation object từ response
-      final conversation = Conversation(
-        id: message.conversationId,
-        participants: [
-          Participant(
-            id: doctorId,
-            fullName: doctorName,
-            avatar: null,
-          ),
-        ],
-        lastMessage: message,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      // Cập nhật danh sách conversations
+      // Cập nhật danh sách conversations và điều hướng thẳng vào màn chi tiết chat
       ref.read(conversationsProvider.notifier).addConversation(conversation);
 
       if (mounted) {
-        context.pushReplacement('/chat');
+        // Điều hướng sau frame để tránh lỗi Navigator !_debugLocked trên Web
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatDetailPage(conversation: conversation),
+            ),
+          );
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -101,6 +96,8 @@ class _StartChatPageState extends ConsumerState<StartChatPage> {
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() { _startingChat = false; });
     }
   }
 

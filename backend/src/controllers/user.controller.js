@@ -44,33 +44,32 @@ const sendPasswordResetOTP = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
+  console.log('[Controller] Attempting to log in with email:', req.body.email);
   try {
     const { userData, accessToken, refreshToken } = await userService.login({
       ...req.body,
       ipAddress: req.ip,
       device: req.headers['user-agent']
-    })
+    });
 
-    let updatedUser = null
-    if (userData && userData.userId) {
-      updatedUser = await UserModel.findByIdAndUpdate(
+    // The original logic tried to increment loginCount. Let's do that and get the full user.
+    const finalUser = await UserModel.findByIdAndUpdate(
         userData.userId,
         { $inc: { loginCount: 1 } },
         { new: true }
-      ).select('firstName lastName email avatar role loginCount')
-    }
+    ).lean(); // Use .lean() to get a plain object
 
     res.status(StatusCodes.OK).json({
       success: true,
       message: 'Đăng nhập thành công',
-      user: updatedUser || userData,
+      user: finalUser,
       accessToken,
       refreshToken
-    })
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 
 const logout = async (req, res, next) => {

@@ -6,8 +6,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 class ApiService {
   static String get _baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:5000/api';
+      // Point Flutter Web to LAN backend
+      return 'http://192.168.100.191:5000/api';
     } else {
+      // Mobile/desktop builds also use LAN backend
       return 'http://192.168.100.191:5000/api';
     }
   }

@@ -120,7 +120,7 @@ class _ProductManagementPageState extends ConsumerState<ProductManagementPage> {
                     labelText: 'Danh mục',
                     border: OutlineInputBorder(),
                   ),
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
                   items: [
                     const DropdownMenuItem<String>(
                       value: null,
@@ -212,7 +212,7 @@ class _ProductManagementPageState extends ConsumerState<ProductManagementPage> {
             Text('Giá: ${product['price']?.toString() ?? 'N/A'} VNĐ'),
             Text('Danh mục: ${product['category']?['name'] ?? 'N/A'}'),
             Text(
-              'Tồn kho: ${inStock}',
+              'Tồn kho: $inStock',
               style: TextStyle(
                 color: isLowStock ? Colors.red : Colors.green,
                 fontWeight: FontWeight.bold,
@@ -490,7 +490,7 @@ class _ProductDialogState extends State<_ProductDialog> {
                   labelText: 'Danh mục *',
                   border: OutlineInputBorder(),
                 ),
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 items: widget.categories.map((category) => DropdownMenuItem<String>(
                   value: category['_id'],
                   child: Text(category['name']),

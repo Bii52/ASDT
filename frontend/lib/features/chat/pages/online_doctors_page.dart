@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../services/auth_service.dart';
-import '../providers/chat_provider.dart';
 
 
 class OnlineDoctorsPage extends ConsumerStatefulWidget {

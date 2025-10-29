@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const mongoosePaginate = require('mongoose-paginate-v2');
+import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 const messageSchema = new mongoose.Schema({
   conversationId: {
@@ -26,5 +26,4 @@ const messageSchema = new mongoose.Schema({
 messageSchema.plugin(mongoosePaginate);
 
 const Message = mongoose.model('Message', messageSchema);
-
-module.exports = Message;
+export default Message;

@@ -28,15 +28,17 @@ class Appointment {
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
+    final doctorObj = json['doctor'] ?? json['doctorInfo'];
+    final patientObj = json['patient'] ?? json['user'];
     return Appointment(
       id: json['_id'] ?? json['id'],
-      doctorId: json['doctorId'] ?? json['doctor']['_id'],
-      doctorName: json['doctorName'] ?? json['doctor']['fullName'] ?? 'Bác sĩ',
-      patientId: json['patientId'] ?? json['patient']['_id'],
-      patientName: json['patientName'] ?? json['patient']['fullName'] ?? 'Bệnh nhân',
+      doctorId: json['doctorId'] ?? (doctorObj is Map ? doctorObj['_id'] : null) ?? '',
+      doctorName: json['doctorName'] ?? (doctorObj is Map ? doctorObj['fullName'] : null) ?? 'Bác sĩ',
+      patientId: json['patientId'] ?? (patientObj is Map ? patientObj['_id'] : null) ?? '',
+      patientName: json['patientName'] ?? (patientObj is Map ? patientObj['fullName'] : null) ?? 'Bệnh nhân',
       date: json['date'],
       startTime: json['startTime'],
-      endTime: json['endTime'],
+      endTime: json['endTime'] ?? '',
       reason: json['reason'],
       status: json['status'],
       createdAt: DateTime.parse(json['createdAt']),

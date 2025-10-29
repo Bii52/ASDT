@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:frontend/services/auth_service.dart';
 import '../models/conversation.dart';
 import '../providers/chat_provider.dart';
 import 'chat_detail_page.dart';
@@ -23,6 +24,10 @@ class _ConversationsListPageState extends ConsumerState<ConversationsListPage> {
 
   void _setupSocketListeners() {
     final socketService = ref.read(chatSocketServiceProvider);
+    final token = ref.read(authProvider).token;
+    if (token != null) {
+      socketService.connect(token);
+    }
     
     // Lắng nghe tin nhắn mới
     socketService.addMessageListener((Message message) {

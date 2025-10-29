@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../services/pharmacist_service.dart';
 
 class QRScannerPage extends ConsumerStatefulWidget {
@@ -11,8 +11,7 @@ class QRScannerPage extends ConsumerStatefulWidget {
 }
 
 class _QRScannerPageState extends ConsumerState<QRScannerPage> {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? controller;
+  final MobileScannerController controller = MobileScannerController();
   bool isScanning = true;
   Map<String, dynamic>? scannedProduct;
   bool isLoading = false;
@@ -20,23 +19,23 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
   @override
   void dispose() {
-    controller?.dispose();
+    controller.dispose();
     super.dispose();
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    setState(() {
-      this.controller = controller;
-    });
-    
-    controller.scannedDataStream.listen((scanData) {
-      if (isScanning && scanData.code != null) {
-        setState(() {
-          isScanning = false;
-        });
-        _validateQRCode(scanData.code!);
+  void _onDetect(BarcodeCapture capture) {
+    if (isScanning) {
+      final List<Barcode> barcodes = capture.barcodes;
+      if (barcodes.isNotEmpty) {
+        final barcode = barcodes.first;
+        if (barcode.rawValue != null) {
+          setState(() {
+            isScanning = false;
+          });
+          _validateQRCode(barcode.rawValue!);
+        }
       }
-    });
+    }
   }
 
   Future<void> _validateQRCode(String qrCode) async {
@@ -47,7 +46,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
     try {
       final result = await PharmacistService.validateQRCode(qrCode);
-      
+
       if (result['success'] == true && result['data']['valid'] == true) {
         setState(() {
           scannedProduct = result['data']['product'];
@@ -74,7 +73,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
       error = null;
       isLoading = false;
     });
-    controller?.resumeCamera();
+    controller.start();
   }
 
   @override
@@ -97,20 +96,13 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
           Expanded(
             flex: 3,
             child: isScanning
-                ? QRView(
-                    key: qrKey,
-                    onQRViewCreated: _onQRViewCreated,
-                    overlay: QrScannerOverlayShape(
-                      borderColor: Colors.purple,
-                      borderRadius: 10,
-                      borderLength: 30,
-                      borderWidth: 10,
-                      cutOutSize: 300,
-                    ),
+                ? MobileScanner(
+                    controller: controller,
+                    onDetect: _onDetect,
                   )
                 : Container(
                     color: Colors.black,
-                    child: Center(
+                    child: const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -119,8 +111,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                             size: 100,
                             color: Colors.white,
                           ),
-                          const SizedBox(height: 16),
-                          const Text(
+                          SizedBox(height: 16),
+                          Text(
                             'Nhấn nút quét lại để tiếp tục',
                             style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
@@ -129,7 +121,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     ),
                   ),
           ),
-          
+
           // Result Area
           Expanded(
             flex: 2,
@@ -215,7 +207,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
 
   Widget _buildProductInfo() {
     final product = scannedProduct!;
-    
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +227,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -250,7 +242,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   if (product['category'] != null) ...[
                     Row(
                       children: [
@@ -261,7 +253,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     ),
                     const SizedBox(height: 8),
                   ],
-                  
+
                   Row(
                     children: [
                       Icon(Icons.attach_money, size: 16, color: Colors.grey[600]),
@@ -270,7 +262,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  
+
                   Row(
                     children: [
                       Icon(Icons.inventory, size: 16, color: Colors.grey[600]),
@@ -284,7 +276,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                       ),
                     ],
                   ),
-                  
+
                   if (product['dosage'] != null) ...[
                     const SizedBox(height: 8),
                     Row(
@@ -296,7 +288,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
                       ],
                     ),
                   ],
-                  
+
                   if (product['sideEffects'] != null) ...[
                     const SizedBox(height: 8),
                     Row(
@@ -312,9 +304,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Row(
             children: [
               Expanded(

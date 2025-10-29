@@ -200,19 +200,18 @@ class _FilterBar extends ConsumerWidget {
 
 class _Pill extends StatelessWidget {
   const _Pill({
-    super.key,
     required this.child,
-    this.padding,
-  });
+    EdgeInsetsGeometry? padding,
+  }) : padding = padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
   final Widget child;
-  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     final c = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: padding,
       decoration: BoxDecoration(
         color: c.surface.withOpacity(0.7),
         borderRadius: BorderRadius.circular(14),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../services/admin_service.dart';
 
 class AdminDashboardPage extends ConsumerStatefulWidget {
   const AdminDashboardPage({super.key});
@@ -84,103 +85,74 @@ class _DashboardOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tổng quan hệ thống',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          // Summary Cards
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 4,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.5,
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: AdminService.getDashboard(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data?['success'] != true) {
+            return Center(
+              child: Text(
+                snapshot.data?['message'] ?? 'Không thể tải dashboard',
+                style: TextStyle(color: Colors.red[700]),
+              ),
+            );
+          }
+          final data = snapshot.data!['data'] as Map<String, dynamic>;
+          final summary = data['summary'] as Map<String, dynamic>;
+          final recentUsers = List<Map<String, dynamic>>.from(data['recentUsers'] ?? []);
+          final recentDoctors = List<Map<String, dynamic>>.from(data['recentDoctors'] ?? []);
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSummaryCard(
-                'Tổng người dùng',
-                '1,234',
-                Icons.people,
-                Colors.blue,
+              Text(
+                'Tổng quan hệ thống',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
               ),
-              _buildSummaryCard(
-                'Bác sĩ',
-                '56',
-                Icons.medical_services,
-                Colors.green,
+              const SizedBox(height: 24),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 4,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.5,
+                children: [
+                  _buildSummaryCard('Tổng người dùng', '${summary['totalUsers']}', Icons.people, Colors.blue),
+                  _buildSummaryCard('Bác sĩ', '${summary['totalDoctors']}', Icons.medical_services, Colors.green),
+                  _buildSummaryCard('Dược sĩ', '${summary['totalPharmacists']}', Icons.local_pharmacy, Colors.orange),
+                  _buildSummaryCard('Sản phẩm', '${summary['totalProducts']}', Icons.medication, Colors.purple),
+                ],
               ),
-              _buildSummaryCard(
-                'Dược sĩ',
-                '23',
-                Icons.local_pharmacy,
-                Colors.orange,
+              const SizedBox(height: 32),
+              Text(
+                'Hoạt động gần đây',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
               ),
-              _buildSummaryCard(
-                'Sản phẩm',
-                '2,456',
-                Icons.medication,
-                Colors.purple,
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final u in recentUsers)
+                      _buildActivityItem('Người dùng mới đăng ký', u['email'] ?? '', '', Icons.person_add, Colors.blue),
+                    for (final d in recentDoctors)
+                      _buildActivityItem('Bác sĩ mới', (d['fullName'] ?? ''), (d['specialty'] ?? ''), Icons.medical_services, Colors.green),
+                  ],
+                ),
               ),
             ],
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // Recent Activities
-          Text(
-            'Hoạt động gần đây',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          Expanded(
-            child: ListView(
-              children: [
-                _buildActivityItem(
-                  'Người dùng mới đăng ký',
-                  'user@example.com',
-                  '2 phút trước',
-                  Icons.person_add,
-                  Colors.blue,
-                ),
-                _buildActivityItem(
-                  'Bác sĩ chờ duyệt',
-                  'Dr. Nguyen Van A',
-                  '15 phút trước',
-                  Icons.pending,
-                  Colors.orange,
-                ),
-                _buildActivityItem(
-                  'Sản phẩm mới',
-                  'Paracetamol 500mg',
-                  '1 giờ trước',
-                  Icons.add_circle,
-                  Colors.green,
-                ),
-                _buildActivityItem(
-                  'Báo cáo spam',
-                  'Chat conversation #123',
-                  '2 giờ trước',
-                  Icons.report,
-                  Colors.red,
-                ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -260,23 +232,19 @@ class _UserManagement extends StatelessWidget {
               ),
               const Spacer(),
               ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Implement user search/filter
-                },
+                onPressed: () {},
                 icon: const Icon(Icons.search),
                 label: const Text('Tìm kiếm'),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          
           Expanded(
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // Filter bar
                     Row(
                       children: [
                         DropdownButton<String>(
@@ -288,53 +256,45 @@ class _UserManagement extends StatelessWidget {
                             DropdownMenuItem(value: 'pharmacist', child: Text('Dược sĩ')),
                             DropdownMenuItem(value: 'admin', child: Text('Admin')),
                           ],
-                          onChanged: (value) {
-                            // TODO: Implement filter
-                          },
-                        ),
-                        const SizedBox(width: 16),
-                        DropdownButton<String>(
-                          value: 'all',
-                          items: const [
-                            DropdownMenuItem(value: 'all', child: Text('Tất cả trạng thái')),
-                            DropdownMenuItem(value: 'active', child: Text('Hoạt động')),
-                            DropdownMenuItem(value: 'locked', child: Text('Bị khóa')),
-                            DropdownMenuItem(value: 'pending', child: Text('Chờ duyệt')),
-                          ],
-                          onChanged: (value) {
-                            // TODO: Implement filter
-                          },
+                          onChanged: (value) {},
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
-                    // Users table
                     Expanded(
-                      child: ListView(
-                        children: [
-                          _buildUserItem(
-                            'Nguyễn Văn A',
-                            'user@example.com',
-                            'Người dùng',
-                            'Hoạt động',
-                            Colors.green,
-                          ),
-                          _buildUserItem(
-                            'Dr. Trần Thị B',
-                            'doctor@example.com',
-                            'Bác sĩ',
-                            'Chờ duyệt',
-                            Colors.orange,
-                          ),
-                          _buildUserItem(
-                            'Dược sĩ Lê Văn C',
-                            'pharmacist@example.com',
-                            'Dược sĩ',
-                            'Hoạt động',
-                            Colors.blue,
-                          ),
-                        ],
+                      child: FutureBuilder<Map<String, dynamic>>(
+                        future: AdminService.getUsers(page: 1, limit: 20),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data?['success'] != true) {
+                            return Center(
+                              child: Text(
+                                snapshot.data?['message'] ?? 'Không thể tải người dùng',
+                                style: TextStyle(color: Colors.red[700]),
+                              ),
+                            );
+                          }
+                          final result = snapshot.data!['data'] as Map<String, dynamic>;
+                          final users = List<Map<String, dynamic>>.from(result['docs'] ?? []);
+                          if (users.isEmpty) {
+                            return const Center(child: Text('Không có người dùng'));
+                          }
+                          return ListView.builder(
+                            itemCount: users.length,
+                            itemBuilder: (context, index) {
+                              final u = users[index];
+                              return _buildUserItem(
+                                (u['fullName'] ?? '---'),
+                                (u['email'] ?? ''),
+                                (u['role'] ?? ''),
+                                (u['isLocked'] == true ? 'Bị khóa' : 'Hoạt động'),
+                                (u['isLocked'] == true ? Colors.red : Colors.green),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -439,35 +399,40 @@ class _DoctorApproval extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          
           Expanded(
-            child: ListView(
-              children: [
-                _buildDoctorApprovalCard(
-                  'Dr. Nguyễn Văn A',
-                  'Chuyên khoa Tim mạch',
-                  'Giấy phép: DOC123456',
-                  'Đã xác minh',
-                  Colors.green,
-                  true,
-                ),
-                _buildDoctorApprovalCard(
-                  'Dr. Trần Thị B',
-                  'Chuyên khoa Nhi',
-                  'Giấy phép: DOC789012',
-                  'Chờ xác minh',
-                  Colors.orange,
-                  false,
-                ),
-                _buildDoctorApprovalCard(
-                  'Dr. Lê Văn C',
-                  'Chuyên khoa Da liễu',
-                  'Giấy phép: DOC345678',
-                  'Chờ xác minh',
-                  Colors.orange,
-                  false,
-                ),
-              ],
+            child: FutureBuilder<Map<String, dynamic>>(
+              future: AdminService.getPendingDoctors(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data?['success'] != true) {
+                  return Center(
+                    child: Text(
+                      snapshot.data?['message'] ?? 'Không thể tải danh sách bác sĩ',
+                      style: TextStyle(color: Colors.red[700]),
+                    ),
+                  );
+                }
+                final doctors = List<Map<String, dynamic>>.from(snapshot.data!['data'] ?? []);
+                if (doctors.isEmpty) {
+                  return const Center(child: Text('Không có bác sĩ chờ duyệt'));
+                }
+                return ListView.builder(
+                  itemCount: doctors.length,
+                  itemBuilder: (context, index) {
+                    final d = doctors[index];
+                    return _buildDoctorApprovalCard(
+                      (d['fullName'] ?? ''),
+                      (d['specialty'] ?? ''),
+                      'Giấy phép: ${d['licenseNumber'] ?? ''}',
+                      (d['doctorStatus'] ?? 'pending'),
+                      Colors.orange,
+                      (d['doctorStatus'] == 'approved'),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -589,29 +554,39 @@ class _ProductMonitoring extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          
           Expanded(
-            child: ListView(
-              children: [
-                _buildProductCard(
-                  'Paracetamol 500mg',
-                  'Thuốc giảm đau, hạ sốt',
-                  'Chờ duyệt',
-                  Colors.orange,
-                ),
-                _buildProductCard(
-                  'Amoxicillin 250mg',
-                  'Kháng sinh',
-                  'Đã duyệt',
-                  Colors.green,
-                ),
-                _buildProductCard(
-                  'Vitamin C 1000mg',
-                  'Bổ sung vitamin',
-                  'Bị từ chối',
-                  Colors.red,
-                ),
-              ],
+            child: FutureBuilder<Map<String, dynamic>>(
+              future: AdminService.getProductsForReview(page: 1, limit: 20),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data?['success'] != true) {
+                  return Center(
+                    child: Text(
+                      snapshot.data?['message'] ?? 'Không thể tải sản phẩm',
+                      style: TextStyle(color: Colors.red[700]),
+                    ),
+                  );
+                }
+                final result = snapshot.data!['data'] as Map<String, dynamic>;
+                final products = List<Map<String, dynamic>>.from(result['docs'] ?? []);
+                if (products.isEmpty) {
+                  return const Center(child: Text('Không có sản phẩm chờ duyệt'));
+                }
+                return ListView.builder(
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final p = products[index];
+                    return _buildProductCard(
+                      (p['name'] ?? ''),
+                      (p['description'] ?? ''),
+                      ((p['adminApproved'] == true) ? 'Đã duyệt' : 'Chờ duyệt'),
+                      ((p['adminApproved'] == true) ? Colors.green : Colors.orange),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],

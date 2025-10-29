@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { adminService } from '~/services/admin.service.js'
 import catchAsync from '~/utils/catchAsync'
 import ApiError from '~/utils/ApiError'
+import pick from '~/utils/pick'
 
 // Quản lý người dùng
 const getUsers = catchAsync(async (req, res) => {
@@ -71,9 +72,17 @@ const approveDoctor = catchAsync(async (req, res) => {
   })
 })
 
-const rejectDoctor = catchAsync(async (req, res) => {
+const rejectDoctor = async (req, res) => {
   const doctor = await adminService.rejectDoctor(req.params.doctorId, req.body.reason)
   res.status(StatusCodes.OK).json({
+    success: true,
+    data: doctor
+  })
+}
+
+const createDoctor = catchAsync(async (req, res) => {
+  const doctor = await adminService.createDoctor(req.body)
+  res.status(StatusCodes.CREATED).json({
     success: true,
     data: doctor
   })
@@ -101,6 +110,16 @@ const rejectProduct = catchAsync(async (req, res) => {
   res.status(StatusCodes.OK).json({
     success: true,
     data: product
+  })
+})
+
+const getProducts = catchAsync(async (req, res) => {
+  const filter = pick(req.query, ['name', 'category', 'adminApproved'])
+  const options = pick(req.query, ['sortBy', 'limit', 'page'])
+  const result = await adminService.getProducts(filter, options)
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: result
   })
 })
 
@@ -222,8 +241,10 @@ export const adminController = {
   getPendingDoctors,
   approveDoctor,
   rejectDoctor,
+  createDoctor,
   
   // Product Monitoring
+  getProducts,
   getProductsForReview,
   approveProduct,
   rejectProduct,

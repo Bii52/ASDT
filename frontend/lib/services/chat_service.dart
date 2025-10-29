@@ -7,7 +7,7 @@ import '../features/chat/models/conversation.dart';
 class ChatService {
   static String get _baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:5000/api';
+      return 'http://192.168.100.191:5000/api';
     } else {
       return 'http://192.168.100.191:5000/api';
     }
@@ -104,6 +104,29 @@ class ChatService {
       }
     } catch (e) {
       throw Exception('Error sending message: $e');
+    }
+  }
+
+  /// Tạo hoặc lấy cuộc trò chuyện với người nhận, không gửi tin nhắn
+  static Future<Conversation> createOrGetConversation(String recipientId) async {
+    try {
+      final url = Uri.parse('$_baseUrl/chat/conversations');
+      final headers = await _getHeaders();
+
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode({ 'recipientId': recipientId }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Conversation.fromJson(data);
+      } else {
+        throw Exception('Failed to create conversation: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error creating conversation: $e');
     }
   }
 }

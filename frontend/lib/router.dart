@@ -36,8 +36,7 @@ import 'features/pharmacist/qr_scanner_page.dart';
 // Admin pages (placeholder for now)
 import 'features/admin/admin_dashboard_page.dart';
 
-// Test pages
-import 'features/test/role_test_page.dart';
+
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -88,7 +87,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/admin/dashboard', builder: (_, __) => const AdminDashboardPage()),
       
       // Test routes
-      GoRoute(path: '/test-roles', builder: (_, __) => const RoleTestPage()),
+ 
     ],
     redirect: (BuildContext context, GoRouterState state) {
       final isAuthenticated = authState.isAuthenticated;
@@ -138,6 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return '/admin/dashboard';
         }
       }
+      return null;
     },
   );
 });

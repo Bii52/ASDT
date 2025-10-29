@@ -41,6 +41,7 @@ router.put('/users/:userId/lock',
 router.put('/users/:userId/unlock', adminController.unlockUser)
 
 // Doctor Approval Routes
+router.post('/doctors', validationMiddleware(adminValidation.createDoctor), adminController.createDoctor)
 router.get('/doctors/pending', adminController.getPendingDoctors)
 router.put('/doctors/:doctorId/approve',
   validationMiddleware(adminValidation.approveDoctor),
@@ -52,6 +53,7 @@ router.put('/doctors/:doctorId/reject',
 )
 
 // Product Monitoring Routes
+router.get('/products', adminController.getProducts)
 router.get('/products/review', adminController.getProductsForReview)
 router.put('/products/:productId/approve', adminController.approveProduct)
 router.put('/products/:productId/reject',

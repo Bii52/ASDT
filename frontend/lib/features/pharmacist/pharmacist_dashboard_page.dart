@@ -19,14 +19,6 @@ class _PharmacistDashboardPageState extends ConsumerState<PharmacistDashboardPag
   bool isLoading = true;
   String? error;
 
-  final List<Widget> _pages = [
-    _DashboardOverview(dashboardData: dashboardData, isLoading: isLoading, error: error, onRefresh: _loadDashboard),
-    const ProductManagementPage(),
-    const CategoryManagementPage(),
-    const QRScannerPage(),
-    const DataSyncPage(),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -62,6 +54,13 @@ class _PharmacistDashboardPageState extends ConsumerState<PharmacistDashboardPag
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      _DashboardOverview(dashboardData: dashboardData, isLoading: isLoading, error: error, onRefresh: _loadDashboard),
+      const ProductManagementPage(),
+      const CategoryManagementPage(),
+      const QRScannerPage(),
+      const DataSyncPage(),
+    ];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard Dược sĩ'),
@@ -74,7 +73,7 @@ class _PharmacistDashboardPageState extends ConsumerState<PharmacistDashboardPag
           ),
         ],
       ),
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,

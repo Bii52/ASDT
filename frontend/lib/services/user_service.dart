@@ -7,13 +7,6 @@ import 'api_service.dart';
 
 class UserService {
   // Sử dụng ApiService để có cấu hình thống nhất
-  static String get _baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:5000/api';
-    } else {
-      return 'http://192.168.100.191:5000/api';
-    }
-  }
 
   static Future<Map<String, dynamic>> _handleApiResponse(http.Response response) async {
     // Nếu thành công (2xx) hoặc lỗi client (4xx) thì có body JSON
@@ -38,11 +31,10 @@ class UserService {
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({'email': email, 'password': password}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await ApiService.post('auth/login', {
+        'email': email,
+        'password': password,
+      });
 
       final data = await _handleApiResponse(response);
 
@@ -67,11 +59,11 @@ class UserService {
 
   static Future<Map<String, dynamic>> register(String email, String password, String name) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/register'),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({'email': email, 'password': password, 'fullName': name}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await ApiService.post('auth/register', {
+        'email': email,
+        'password': password,
+        'fullName': name,
+      });
 
       return await _handleApiResponse(response);
     } on SocketException {
@@ -107,11 +99,10 @@ class UserService {
 
   static Future<Map<String, dynamic>> verifyRegistration(String email, String otp) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/verify-registration'),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({'email': email, 'otp': otp}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await ApiService.post('auth/verify-registration', {
+        'email': email,
+        'otp': otp,
+      });
 
       return await _handleApiResponse(response);
     } on SocketException {
@@ -124,11 +115,9 @@ class UserService {
 
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/forgot-password'),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({'email': email}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await ApiService.post('auth/forgot-password', {
+        'email': email,
+      });
 
       return await _handleApiResponse(response);
     } on SocketException {
@@ -141,15 +130,11 @@ class UserService {
 
   static Future<Map<String, dynamic>> resetPassword(String email, String otp, String newPassword) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/reset-password'),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({
-          'email': email,
-          'otp': otp,
-          'newPassword': newPassword
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final response = await ApiService.post('auth/reset-password', {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      });
 
       return await _handleApiResponse(response);
     } on SocketException {

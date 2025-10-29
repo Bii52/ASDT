@@ -57,6 +57,17 @@ const rejectProduct = {
   })
 }
 
+const createDoctor = {
+  body: Joi.object().keys({
+    fullName: Joi.string().required().trim().min(2).max(100),
+    email: Joi.string().required().email().trim().lowercase(),
+    password: Joi.string().required().min(8),
+    specialty: Joi.string().optional().trim(),
+    bio: Joi.string().optional().trim().max(500),
+    licenseNumber: Joi.string().optional().trim()
+  })
+}
+
 const createArticle = {
   body: Joi.object().keys({
     title: Joi.string().required().trim().min(5).max(200),
@@ -125,6 +136,7 @@ export const adminValidation = {
   approveDoctor,
   rejectDoctor,
   rejectProduct,
+  createDoctor,
   createArticle,
   updateArticle,
   handleReport,

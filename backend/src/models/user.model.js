@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const mongoosePaginate = require('mongoose-paginate-v2');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 
 const LoginHistorySchema = new mongoose.Schema({
@@ -163,4 +163,4 @@ UserSchema.statics.isEmailTaken = async function (email, excludeUserId) {
   return !!user;
 };
 
-module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
+export default mongoose.models.User || mongoose.model('User', UserSchema);

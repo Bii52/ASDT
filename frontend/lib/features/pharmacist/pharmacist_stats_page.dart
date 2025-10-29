@@ -81,7 +81,7 @@ class _PharmacistStatsPageState extends ConsumerState<PharmacistStatsPage> {
                       labelText: 'Thời gian',
                       border: OutlineInputBorder(),
                     ),
-                    value: selectedPeriod,
+                    initialValue: selectedPeriod,
                     items: const [
                       DropdownMenuItem(value: 'week', child: Text('Tuần')),
                       DropdownMenuItem(value: 'month', child: Text('Tháng')),
@@ -102,16 +102,16 @@ class _PharmacistStatsPageState extends ConsumerState<PharmacistStatsPage> {
                       labelText: 'Danh mục',
                       border: OutlineInputBorder(),
                     ),
-                    value: selectedCategory,
-                    items: [
-                      const DropdownMenuItem<String>(
+                    initialValue: selectedCategory,
+                    items: const [
+                      DropdownMenuItem<String>(
                         value: null,
                         child: Text('Tất cả danh mục'),
                       ),
                       // TODO: Load categories from API
-                      const DropdownMenuItem(value: 'antibiotics', child: Text('Kháng sinh')),
-                      const DropdownMenuItem(value: 'painkillers', child: Text('Giảm đau')),
-                      const DropdownMenuItem(value: 'vitamins', child: Text('Vitamin')),
+                      DropdownMenuItem(value: 'antibiotics', child: Text('Kháng sinh')),
+                      DropdownMenuItem(value: 'painkillers', child: Text('Giảm đau')),
+                      DropdownMenuItem(value: 'vitamins', child: Text('Vitamin')),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -243,7 +243,7 @@ class _PharmacistStatsPageState extends ConsumerState<PharmacistStatsPage> {
                     barTouchData: BarTouchData(
                       enabled: true,
                       touchTooltipData: BarTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey,
+                        getTooltipColor: (group) => Colors.blueGrey,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           final stat = stats[groupIndex];
                           return BarTooltipItem(

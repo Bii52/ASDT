@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes'
 import { jwtGenerate, requestNewToken } from '~/utils/jwt'
 import UserModel from '~/models/user.model.js'
 import OTPModel from '~/models/OTP.model.js'
-import RefreshTokenModel from '~/models/RefreshToken.model'
+import RefreshTokenModel from '~/models/RefreshToken.model.js'
 import sendMail from '~/utils/sendMail.js'
 import sendSMS from '~/utils/sendSMS.js'
 
@@ -115,6 +115,7 @@ const sendPasswordResetOTP = async (email) => {
 }
 
 const login = async (loginData) => {
+  console.log('[Service] Login service started for email:', loginData.email);
   try {
     const user = await UserModel.findOne({ email: loginData.email })
       .select('_id role email fullName +password banned emailVerified loginHistory')
@@ -143,8 +144,10 @@ const login = async (loginData) => {
       email: user.email,
       fullName: user.fullName
     }
+    console.log('[Service] Login service completed successfully for email:', loginData.email);
     return { userData, accessToken: AccessToken, refreshToken: RefreshToken }
   } catch (error) {
+    console.error('[Service] Error in login service:', error);
     throw error
   }
 }
@@ -184,8 +187,8 @@ const deleteUserById = async (userId) => {
 
 const getDoctors = async () => {
   try {
-    const doctors = await UserModel.find({ role: 'doctor' })
-      .select('_id fullName email avatar specialization')
+  const doctors = await UserModel.find({ role: 'doctor' })
+      .select('_id fullName email avatar specialty')
       .lean();
     return doctors;
   } catch (error) {
@@ -209,7 +212,7 @@ const getOnlineDoctors = async (onlineUsers) => {
       _id: { $in: onlineDoctorIds },
       role: 'doctor' 
     })
-      .select('_id fullName email avatar specialization')
+      .select('_id fullName email avatar specialty')
       .lean();
     
     return doctors;
@@ -221,7 +224,7 @@ const getOnlineDoctors = async (onlineUsers) => {
 const getUserProfile = async (userId) => {
   try {
     const user = await UserModel.findById(userId)
-      .select('_id fullName email avatar role specialization phoneNumber')
+      .select('_id fullName email avatar role specialty phoneNumber')
       .lean();
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');

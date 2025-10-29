@@ -1,9 +1,9 @@
 import express from 'express';
-import { userController } from '~/controllers/user.controller';
-import { verifyToken, verifyAdmin, verifyRole } from '~/middlewares/authMiddleware';
+import { userController } from '~/controllers/user.controller.js';
+import { verifyToken, verifyAdmin, verifyRole } from '~/middlewares/authMiddleware.js';
 
-import validate from '~/middlewares/validationMiddleware';
-import { registerSchema, loginSchema, verifyRegistrationSchema } from '~/validations/authValidation';
+import validate from '~/middlewares/validationMiddleware.js';
+import { registerSchema, loginSchema, verifyRegistrationSchema } from '~/validations/authValidation.js';
 
 const router = express.Router();
 
