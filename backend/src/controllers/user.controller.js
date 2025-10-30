@@ -126,6 +126,11 @@ const getProfile = async (req, res, next) => {
   }
 }
 
+const updateProfile = catchAsync(async (req, res) => {
+  const user = await userService.updateUserById(req.user.id, req.body);
+  res.send(user);
+});
+
 const getUserDetails = async (req, res, next) => {
   try {
     const userId = req.params.id
@@ -323,6 +328,7 @@ export const userController = {
   changePassword,
   sendPasswordResetOTP,
   getProfile,
+  updateProfile,
   verifyRegistration,
   oAuthLoginCallback,
   adminTest,

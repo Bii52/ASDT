@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../features/chat/models/conversation.dart';
 
-const String socketUrl = 'http://192.168.100.191:5000';
+const String socketUrl = 'http://192.168.1.83:5000';
 
 class ChatSocketService {
   io.Socket? _socket;
@@ -20,10 +20,10 @@ class ChatSocketService {
     // Ngắt kết nối cũ nếu có
     disconnect();
 
-    debugPrint('=== Socket Connection Debug ===');
-    debugPrint('Socket URL: $socketUrl');
-    debugPrint('Token length: ${authToken.length}');
-    debugPrint('Token preview: ${authToken.substring(0, 20)}...');
+    print('=== Socket Connection Debug ===');
+    print('Socket URL: $socketUrl');
+    print('Token length: ${authToken.length}');
+    print('Token preview: ${authToken.substring(0, 20)}...');
 
     // Khởi tạo kết nối mới
     _socket = io.io(socketUrl, <String, dynamic>{
@@ -36,24 +36,24 @@ class ChatSocketService {
     });
 
     _socket!.onConnect((_) {
-      debugPrint('✓ Chat Socket connected successfully: ${_socket!.id}');
+      print('✓ Chat Socket connected successfully: ${_socket!.id}');
     });
 
     _socket!.onConnectError((data) {
-      debugPrint('✗ Chat Connection Error: $data');
+      print('✗ Chat Connection Error: $data');
     });
 
     _socket!.onError((data) {
-      debugPrint('✗ Chat Socket Error: $data');
+      print('✗ Chat Socket Error: $data');
     });
 
     _socket!.onDisconnect((reason) {
-      debugPrint('Chat Socket disconnected: $reason');
+      print('Chat Socket disconnected: $reason');
     });
 
     // Lắng nghe tin nhắn mới
     _socket!.on('new_message', (data) {
-      debugPrint('New message received: $data');
+      print('New message received: $data');
       final message = Message.fromJson(data);
       for (final listener in _messageListeners) {
         listener(message);
@@ -62,14 +62,14 @@ class ChatSocketService {
 
     // Lắng nghe danh sách bác sĩ online
     _socket!.on('online_doctors_update', (data) {
-      debugPrint('✓ Online doctors received: $data');
+      print('✓ Online doctors received: $data');
       final onlineDoctors = List<String>.from(data);
       for (final listener in _onlineDoctorsListeners) {
         listener(onlineDoctors);
       }
     });
 
-    debugPrint('Socket connection initiated...');
+    print('Socket connection initiated...');
   }
 
   void disconnect() {

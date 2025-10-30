@@ -4,13 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'api_service.dart';
 
 class AppointmentService {
-  static String get _baseUrl {
-    if (kIsWeb) {
-      return 'http://192.168.100.191:5000/api';
-    } else {
-      return 'http://192.168.100.191:5000/api';
-    }
-  }
 
   static Future<Map<String, dynamic>> _handleApiResponse(http.Response response) async {
     if (response.statusCode >= 200 && response.statusCode < 500) {

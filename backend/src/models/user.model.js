@@ -70,6 +70,23 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
 
+  // Health Metrics
+  height: {
+    type: Number,
+  },
+  weight: {
+    type: Number,
+  },
+  bloodPressure: {
+    type: String,
+  },
+  heartRate: {
+    type: Number,
+  },
+  bloodType: {
+    type: String,
+  },
+
 
   // Account lock status managed by admin
   isLocked: {

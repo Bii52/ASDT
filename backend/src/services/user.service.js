@@ -164,15 +164,16 @@ const getUserById = async (userId) => {
 };
 
 const updateUserById = async (userId, updateBody) => {
-  const user = await getUserById(userId);
-  if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
-  }
   if (updateBody.email && (await UserModel.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already taken');
   }
-  Object.assign(user, updateBody);
-  await user.save();
+
+  const user = await UserModel.findByIdAndUpdate(userId, { $set: updateBody }, { new: true, runValidators: true }).lean();
+
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
   return user;
 };
 
@@ -224,7 +225,7 @@ const getOnlineDoctors = async (onlineUsers) => {
 const getUserProfile = async (userId) => {
   try {
     const user = await UserModel.findById(userId)
-      .select('_id fullName email avatar role specialty phoneNumber')
+      .select('_id fullName email avatar role specialty phoneNumber height weight bloodPressure heartRate bloodType')
       .lean();
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');

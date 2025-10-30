@@ -3,7 +3,7 @@ import { userController } from '~/controllers/user.controller.js';
 import { verifyToken, verifyAdmin, verifyRole } from '~/middlewares/authMiddleware.js';
 
 import validate from '~/middlewares/validationMiddleware.js';
-import { registerSchema, loginSchema, verifyRegistrationSchema } from '~/validations/authValidation.js';
+import { registerSchema, loginSchema, verifyRegistrationSchema, updateProfileSchema, changePasswordSchema } from '~/validations/authValidation.js';
 
 const router = express.Router();
 
@@ -17,9 +17,10 @@ router.post('/request-token', userController.requestToken)
 // --- Password Management ---
 router.post('/forgot-password', userController.sendPasswordResetOTP)
 router.post('/reset-password', userController.resetPassword)
-router.put('/change-password', verifyToken, userController.changePassword)
+router.put('/change-password', verifyToken, validate(changePasswordSchema), userController.changePassword)
 
 router.get('/me', verifyToken, userController.getProfile);
+router.patch('/me', verifyToken, validate(updateProfileSchema), userController.updateProfile);
 
 // I will also add back the other routes that were there before, in case the user deleted them by mistake
 router.post('/verify-registration', validate(verifyRegistrationSchema), userController.verifyRegistration);

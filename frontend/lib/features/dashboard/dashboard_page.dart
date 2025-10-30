@@ -1,12 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/services/auth_service.dart';
+import 'package:frontend/features/auth/models/user.dart';
+import 'package:frontend/services/user_service.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
     final isWide = size.width >= 1000;
@@ -76,18 +81,33 @@ class DashboardPage extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft, end: Alignment.bottomRight,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                   colors: [
-                    theme.colorScheme.primary.withOpacity(0.10),
-                    theme.colorScheme.secondaryContainer.withOpacity(0.25),
-                    theme.colorScheme.surfaceTint.withOpacity(0.08),
+                    theme.colorScheme.primary.withValues(alpha: 0.10),
+                    theme.colorScheme.secondaryContainer.withValues(alpha: 0.25),
+                    theme.colorScheme.surfaceTint.withValues(alpha: 0.08),
                   ],
                 ),
               ),
             ),
           ),
-          Positioned(top: -80, left: -60, child: _Blob(size: size.width * 0.35, color: theme.colorScheme.primary.withOpacity(0.16))),
-          Positioned(bottom: -100, right: -70, child: _Blob(size: size.width * 0.40, color: theme.colorScheme.tertiary.withOpacity(0.14))),
+          Positioned(
+            top: -80,
+            left: -60,
+            child: _Blob(
+              size: size.width * 0.35,
+              color: theme.colorScheme.primary.withValues(alpha: 0.16),
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            right: -70,
+            child: _Blob(
+              size: size.width * 0.40,
+              color: theme.colorScheme.tertiary.withValues(alpha: 0.14),
+            ),
+          ),
 
           SafeArea(
             child: CustomScrollView(
@@ -101,7 +121,7 @@ class DashboardPage extends StatelessWidget {
                       children: [
                         Expanded(child: _Header()),
                         const SizedBox(width: 12),
-                        const _ProfileActions(), // << thêm thanh profile
+                        const _ProfileActions(),
                       ],
                     ),
                   ),
@@ -119,10 +139,15 @@ class DashboardPage extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: size.width >= 1200 ? 3 : size.width >= 700 ? 2 : 1,
+                      crossAxisCount: size.width >= 1200
+                          ? 3
+                          : size.width >= 700
+                              ? 2
+                              : 1,
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: size.width >= 1200 ? 1.35 : size.width >= 700 ? 1.4 : 2.4,
+                      childAspectRatio:
+                          size.width >= 1200 ? 1.35 : size.width >= 700 ? 1.4 : 2.4,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => cards[i],
@@ -153,9 +178,15 @@ class _Header extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: c.surface.withOpacity(0.65),
-            border: Border.all(color: c.outlineVariant.withOpacity(0.5)),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 24, offset: const Offset(0, 8))],
+            color: c.surface.withValues(alpha: 0.65),
+            border: Border.all(color: c.outlineVariant.withValues(alpha: 0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -163,7 +194,7 @@ class _Header extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: c.primary.withOpacity(0.12),
+                  color: c.primary.withValues(alpha: 0.12),
                 ),
                 child: Icon(Icons.favorite, color: c.primary, size: 28),
               ),
@@ -172,10 +203,18 @@ class _Header extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Chăm Sóc Sức Khỏe', style: t.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.2)),
+                    Text(
+                      'Chăm Sóc Sức Khỏe',
+                      style: t.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text('Theo dõi sức khỏe, nhắc uống thuốc và đọc kiến thức y khoa mỗi ngày.',
-                        style: t.bodyMedium?.copyWith(color: c.onSurfaceVariant)),
+                    Text(
+                      'Theo dõi sức khỏe, nhắc uống thuốc và đọc kiến thức y khoa mỗi ngày.',
+                      style: t.bodyMedium?.copyWith(color: c.onSurfaceVariant),
+                    ),
                   ],
                 ),
               ),
@@ -187,10 +226,10 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _ProfileActions extends StatelessWidget {
+class _ProfileActions extends ConsumerWidget {
   const _ProfileActions();
 
-  Future<void> _confirmLogout(BuildContext context) async {
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -203,67 +242,174 @@ class _ProfileActions extends StatelessWidget {
       ),
     );
     if (ok == true && context.mounted) {
-      // TODO: xoá token/clear state nếu có (auth)
-      context.go('/welcome');
+      await ref.read(authProvider.notifier).logout();
+      context.go('/login');
+    }
+  }
+
+  Future<void> _showEditNameDialog(
+      BuildContext context, WidgetRef ref, User currentUser) async {
+    final nameController = TextEditingController(text: currentUser.fullName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Name'),
+        content: TextField(
+          controller: nameController,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Enter your full name'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(nameController.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName.isNotEmpty && newName != currentUser.fullName) {
+      final result = await UserService.updateProfile({'fullName': newName});
+      if (result['success'] == true) {
+        final updatedUser = User.fromJson(result['user']);
+        ref.read(authProvider.notifier).updateUser(updatedUser);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Name updated successfully!')),
+        );
+      } else {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update name: ${result['message']}')),
+        );
+      }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: PopupMenuButton<String>(
-        tooltip: 'Tài khoản',
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        offset: const Offset(0, 14),
-        onSelected: (v) {
-          switch (v) {
-            case 'profile':
-              context.push('/profile');
-              break;
-            case 'settings':
-              // TODO: mở trang cài đặt khi có
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tính năng sắp có')));
-              break;
-            case 'logout':
-              _confirmLogout(context);
-              break;
-          }
-        },
-        itemBuilder: (ctx) => [
-          PopupMenuItem<String>(
-            value: 'profile',
-            child: Row(children: [Icon(Icons.person_outline, color: c.primary), const SizedBox(width: 8), const Text('Hồ sơ của tôi')]),
+    final user = ref.watch(authProvider).user;
+
+    if (user == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: c.surface.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: c.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Clickable Avatar
+          GestureDetector(
+            onTap: () async {
+              final ImagePicker picker = ImagePicker();
+              final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+              if (image != null) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Uploading avatar...')),
+                );
+                final uploadResponse = await UserService.uploadAvatar(image);
+
+                if (uploadResponse['success'] == true) {
+                  final newAvatarUrl = uploadResponse['avatarUrl'];
+                  final updateProfileResponse =
+                      await UserService.updateProfile({'avatar': newAvatarUrl});
+
+                  if (updateProfileResponse['success'] == true) {
+                    final updatedUser = User.fromJson(updateProfileResponse['user']);
+                    ref.read(authProvider.notifier).updateUser(updatedUser);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Avatar updated successfully!')),
+                    );
+                  } else {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Failed to save avatar URL: ${updateProfileResponse['message']}',
+                        ),
+                      ),
+                    );
+                  }
+                } else {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content:
+                          Text('Failed to upload avatar: ${uploadResponse['message']}'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: CircleAvatar(
+              radius: 14,
+              backgroundImage: user.avatar != null ? NetworkImage(user.avatar!) : null,
+              child: user.avatar == null ? const Icon(Icons.person, size: 18) : null,
+            ),
           ),
-          PopupMenuItem<String>(
-            value: 'settings',
-            child: Row(children: [Icon(Icons.settings_outlined, color: c.primary), const SizedBox(width: 8), const Text('Cài đặt')]),
+          const SizedBox(width: 8),
+          // Clickable Name
+          GestureDetector(
+            onTap: () => _showEditNameDialog(context, ref, user),
+            child: Text(
+              user.fullName,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
           ),
-          const PopupMenuDivider(),
-          PopupMenuItem<String>(
-            value: 'logout',
-            child: Row(children: [Icon(Icons.logout_rounded, color: c.error), const SizedBox(width: 8), const Text('Đăng xuất')]),
-          ),
-        ],
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: c.surface.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: c.outlineVariant.withOpacity(0.5)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircleAvatar(radius: 14, child: Icon(Icons.person, size: 18)),
-              const SizedBox(width: 8),
-              Text('Tài khoản', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-              const SizedBox(width: 2),
-              const Icon(Icons.expand_more, size: 18),
+          const SizedBox(width: 2),
+          // More Options Menu
+          PopupMenuButton<String>(
+            tooltip: 'More options',
+            icon: const Icon(Icons.expand_more, size: 18),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            offset: const Offset(0, 40),
+            onSelected: (v) {
+              switch (v) {
+                case 'profile':
+                  context.push('/profile');
+                  break;
+                case 'change_password':
+                  context.push('/settings/change-password');
+                  break;
+                case 'logout':
+                  _confirmLogout(context, ref);
+                  break;
+              }
+            },
+            itemBuilder: (ctx) => [
+              PopupMenuItem<String>(
+                value: 'profile',
+                child: Row(
+                  children: [Icon(Icons.person_outline, color: c.primary), const SizedBox(width: 8), const Text('My Profile')],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'change_password',
+                child: Row(
+                  children: [Icon(Icons.lock_outline, color: c.primary), const SizedBox(width: 8), const Text('Change Password')],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: [Icon(Icons.logout_rounded, color: c.error), const SizedBox(width: 8), const Text('Logout')],
+                ),
+              ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -274,7 +420,6 @@ class _QuickStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = Theme.of(context).colorScheme;
     return const Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -303,7 +448,7 @@ class _StatChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surface.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: c.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
@@ -356,16 +501,17 @@ class _DashCardState extends State<_DashCard> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
               gradient: LinearGradient(
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
                 colors: [
-                  widget.color.withOpacity(0.12),
-                  c.surface.withOpacity(0.75),
+                  widget.color.withValues(alpha: 0.12),
+                  c.surface.withValues(alpha: 0.75),
                 ],
               ),
-              border: Border.all(color: c.outlineVariant.withOpacity(0.5)),
+              border: Border.all(color: c.outlineVariant.withValues(alpha: 0.5)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(_hover ? 0.10 : 0.06),
+                  color: Colors.black.withValues(alpha: _hover ? 0.10 : 0.06),
                   blurRadius: _hover ? 26 : 20,
                   offset: const Offset(0, 10),
                 ),
@@ -381,14 +527,20 @@ class _DashCardState extends State<_DashCard> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: widget.color.withOpacity(0.14),
+                      color: widget.color.withValues(alpha: 0.14),
                     ),
                     child: Icon(widget.icon, size: 26, color: widget.color),
                   ),
                   const Spacer(),
-                  Text(widget.title, style: t.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    widget.title,
+                    style: t.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 4),
-                  Text(widget.subtitle, style: t.bodySmall?.copyWith(color: c.onSurfaceVariant)),
+                  Text(
+                    widget.subtitle,
+                    style: t.bodySmall?.copyWith(color: c.onSurfaceVariant),
+                  ),
                 ],
               ),
             ),
@@ -415,7 +567,13 @@ class _Blob extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 50, spreadRadius: 10)],
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.6),
+              blurRadius: 50,
+              spreadRadius: 10,
+            ),
+          ],
         ),
       ),
     );
