@@ -53,6 +53,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await prefs.remove('refreshToken'); // Also clear refresh token
     state = AuthState(isAuthenticated: false);
   }
+
+  Future<void> updateUser(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', json.encode(user.toJson()));
+    state = state.copyWith(user: user);
+  }
 }
 
 // 3. Tạo Provider

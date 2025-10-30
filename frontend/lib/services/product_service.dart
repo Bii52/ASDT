@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'api_service.dart';
 
 class ProductService {
-  static const String _baseUrl = kIsWeb ? 'http://192.168.100.191:5000/api' : 'http://192.168.100.191:5000/api';
+  static const String _baseUrl = kIsWeb ? 'http://192.168.1.83:5000/api' : 'http://192.168.1.83:5000/api';
 
   static Future<Map<String, dynamic>> _handleApiResponse(http.Response response) async {
     if (response.statusCode >= 200 && response.statusCode < 500) {

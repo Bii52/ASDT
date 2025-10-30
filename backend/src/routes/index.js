@@ -6,6 +6,7 @@ import { chatRouter } from './chat.router.js';
 import appointmentRouter from './appointment.router.js';
 import pharmacistRouter from './pharmacist.router.js';
 import adminRouter from './admin.router.js';
+import { uploadRouter } from './upload.router.js';
 const router = express.Router();
 
 router.use('/auth', userRouter);
@@ -15,5 +16,6 @@ router.use('/chat', chatRouter);
 router.use('/appointments', appointmentRouter);
 router.use('/pharmacist', pharmacistRouter);
 router.use('/admin', adminRouter);
+router.use('/upload', uploadRouter);
 
 export default router;

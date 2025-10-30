@@ -7,9 +7,9 @@ import '../features/chat/models/conversation.dart';
 class ChatService {
   static String get _baseUrl {
     if (kIsWeb) {
-      return 'http://192.168.100.191:5000/api';
+      return 'http://192.168.1.83:5000/api';
     } else {
-      return 'http://192.168.100.191:5000/api';
+      return 'http://192.168.1.83:5000/api';
     }
   }
   

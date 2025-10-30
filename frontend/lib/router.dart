@@ -11,6 +11,8 @@ import 'features/articles/article_detail_page.dart';
 import 'features/reminders/reminders_page.dart';
 import 'features/reminders/add_reminder_page.dart';
 import 'features/profile/edit_profile_page.dart';
+import 'features/profile/settings_page.dart';
+import 'features/profile/change_password_page.dart';
 import 'features/auth/login_page.dart';
 import 'features/auth/register_page.dart';
 import 'features/welcome/welcome_page.dart';
@@ -61,6 +63,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/reminders/add', builder: (ctx, s) => AddReminderPage(initialMedicine: s.extra as String?)),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfilePage()),
+      GoRoute(path: '/settings', builder: (_, __) => const SettingsPage()),
+      GoRoute(path: '/settings/change-password', builder: (_, __) => const ChangePasswordPage()),
       GoRoute(path: '/drugs', builder: (_, __) => const DrugSearchPage()),
       GoRoute(path: '/drugs/:id', builder: (ctx, s) => DrugDetailPage(id: s.pathParameters['id']!)),
       GoRoute(path: '/categories', builder: (_, __) => const CategoriesPage()),
