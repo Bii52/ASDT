@@ -8,7 +8,8 @@ import '../../services/appointment_service.dart';
 import '../../services/auth_service.dart';
 
 class CreateAppointmentPage extends ConsumerStatefulWidget {
-  const CreateAppointmentPage({super.key});
+  final String? doctorId;
+  const CreateAppointmentPage({super.key, this.doctorId});
 
   @override
   ConsumerState<CreateAppointmentPage> createState() => _CreateAppointmentPageState();
@@ -29,6 +30,9 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
   void initState() {
     super.initState();
     _loadDoctors();
+    if (widget.doctorId != null) {
+      _selectedDoctorId = widget.doctorId;
+    }
   }
 
   @override
@@ -43,7 +47,7 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
         _isLoadingDoctors = true;
       });
 
-      const baseUrl = kIsWeb ? 'http://localhost:5000/api' : 'http://192.168.100.191:5000/api';
+      const baseUrl = kIsWeb ? 'http://192.168.1.19:5000/api' : 'http://192.168.1.19:5000/api';
       final response = await http.get(
         Uri.parse('$baseUrl/auth/doctors'),
         headers: {
@@ -56,6 +60,10 @@ class _CreateAppointmentPageState extends ConsumerState<CreateAppointmentPage> {
         final data = json.decode(response.body);
         setState(() {
           _doctors = List<Map<String, dynamic>>.from(data);
+          // Nếu doctorId được truyền vào không có trong danh sách, hãy xóa nó đi
+          if (widget.doctorId != null && !_doctors.any((d) => d['_id'] == widget.doctorId)) {
+            _selectedDoctorId = null;
+          }
           _isLoadingDoctors = false;
         });
       } else {

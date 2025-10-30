@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'doctor_appointments_page.dart';
 import 'doctor_chats_page.dart';
 import '../../../services/auth_service.dart';
@@ -18,18 +19,18 @@ class _DoctorDashboardPageState extends ConsumerState<DoctorDashboardPage> {
   final List<Widget> _pages = [
     const DoctorAppointmentsPage(),
     const DoctorChatsPage(),
-    // Add a simple profile/logout page for now
-    const Scaffold(body: Center(child: Text('Profile'))),
   ];
 
   void _onItemTapped(int index) {
+    // Nếu nhấn vào tab "Hồ sơ" (index = 2), điều hướng đến trang profile
+    if (index == 2) {
+      context.push('/profile');
+      return;
+    }
+
     setState(() {
       _selectedIndex = index;
-      _pageController.animateToPage(
-        index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      _pageController.jumpToPage(index);
     });
   }
 
@@ -41,8 +42,11 @@ class _DoctorDashboardPageState extends ConsumerState<DoctorDashboardPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Đăng xuất',
             onPressed: () {
               ref.read(authProvider.notifier).logout();
+              // Sau khi logout, điều hướng về trang login
+              context.go('/login');
             },
           ),
         ],
@@ -50,6 +54,7 @@ class _DoctorDashboardPageState extends ConsumerState<DoctorDashboardPage> {
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
+          if (index >= _pages.length) return;
           setState(() {
             _selectedIndex = index;
           });

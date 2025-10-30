@@ -123,12 +123,7 @@ flutter pub get
 flutter run
 ```
 
-## Test các vai trò
 
-Truy cập `/test-roles` để test các vai trò và tính năng:
-- Kiểm tra thông tin người dùng hiện tại
-- Điều hướng đến các trang theo vai trò
-- Test các chức năng của từng role
 
 ## Cấu trúc Database
 

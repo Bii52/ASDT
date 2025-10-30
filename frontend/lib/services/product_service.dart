@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'api_service.dart';
 
 class ProductService {
-  static const String _baseUrl = kIsWeb ? 'http://192.168.100.191:5000/api' : 'http://192.168.100.191:5000/api';
+  static const String _baseUrl = kIsWeb ? 'http://192.168.1.19:5000/api' : 'http://192.168.1.19:5000/api';
 
   static Future<Map<String, dynamic>> _handleApiResponse(http.Response response) async {
     if (response.statusCode >= 200 && response.statusCode < 500) {
@@ -106,6 +106,26 @@ class ProductService {
     } catch (e) {
       debugPrint('Get categories error: $e');
       return {'success': false, 'message': 'Failed to load categories: $e'};
+    }
+  }
+
+  /// Tìm sản phẩm bằng mã QR
+  static Future<Map<String, dynamic>> findProductByQRCode(String qrCode) async {
+    try {
+      // Endpoint backend là /products/qr/:qrCode
+      final response = await ApiService.get('products/qr/$qrCode');
+      final decoded = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': decoded};
+      } else {
+        return {
+          'success': false,
+          'message': decoded['message'] ?? 'Không tìm thấy sản phẩm'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
     }
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 
-const String socketUrl = 'http://10.0.2.2:5000';
+const String socketUrl = 'http://192.168.1.19:5000';
 
 class SocketService {
   io.Socket? _socket;
@@ -18,8 +18,7 @@ class SocketService {
     // Ngắt kết nối cũ nếu có
     disconnect();
 
-    // Khởi tạo kết nối mới
-    // Sử dụng 10.0.2.2 cho Android emulator
+  
     _socket = io.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,

@@ -1,9 +1,83 @@
 import mongoose from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
-const ProductSchema = new mongoose.Schema({\n  name: {\n    type: String,\n    required: true,\n    trim: true,\n    minlength: 2,\n    maxlength: 100\n  },\n  description: {\n    type: String,\n    required: true,\n    trim: true,\n    minlength: 10,\n    maxlength: 1000\n  },\n  images: [{\n    type: String,\n    validate: {\n      validator: (v) => /^https?:\/\/.+/.test(v),\n      message: props => `${props.value} is not a valid URL!`\n    }\n  }],\n  price: {\n    type: Number,\n    required: true,\n    min: 0\n  },\n  category: {\n    type: mongoose.Schema.Types.ObjectId,\n    ref: \'Category\',\n    required: true\n  },\n  qrCode: {\n    type: String,\n    trim: true,\n    unique: true,\n    sparse: true // Allows multiple documents to have a null value for this field\n  },\n  inStock: {\n    type: Number,\n    required: true,\n    min: 0,\n    default: 0\n  },\n  sideEffects: {\n    type: String,\n    trim: true,\n    maxlength: 500\n  },\n  dosage: {\n    type: String,\n    trim: true,\n    maxlength: 200\n  },\n  manufacturer: {\n    type: String,\n    trim: true,\n    maxlength: 100\n  },\n  expiryDate: {\n    type: Date\n  },\n  ingredients: [{\n    type: String,\n    trim: true\n  }]\n}, { timestamps: true });
+const ProductSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 100,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 10,
+      maxlength: 1000,
+    },
+    images: [
+      {
+        type: String,
+        validate: {
+          validator: (v) => /^https?:\/\/.+/.test(v),
+          message: (props) => `${props.value} is not a valid URL!`,
+        },
+      },
+    ],
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      required: true,
+    },
+    qrCode: {
+      type: String,
+      trim: true,
+      unique: true,
+      sparse: true, 
+    },
+    inStock: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    sideEffects: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+    },
+    dosage: {
+      type: String,
+      trim: true,
+      maxlength: 200,
+    },
+    manufacturer: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
+    expiryDate: {
+      type: Date,
+    },
+    ingredients: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
 ProductSchema.plugin(mongoosePaginate);
 
 const Product = mongoose.model('Product', ProductSchema);
+
 export default Product;

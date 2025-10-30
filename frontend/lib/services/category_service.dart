@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class CategoryService {
-  final String baseUrl = kIsWeb ? 'http://192.168.100.191:5000/api' : 'http://192.168.100.191:5000/api';
+  final String baseUrl = kIsWeb ? 'http://192.168.1.19:5000/api' : 'http://192.168.1.19:5000/api';
 
   Future<List<dynamic>> getCategories() async {
     try {

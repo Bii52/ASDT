@@ -147,6 +147,9 @@ List<String> _getMockCategories() {
   return set.toList()..sort();
 }
 
+/// Provider để quản lý danh sách các thuốc được chọn để tạo nhắc nhở
+final selectedDrugsForReminderProvider = StateProvider<Set<Drug>>((_) => <Drug>{});
+
 /// dữ liệu gốc (fallback)
 final drugsProvider = Provider<List<Drug>>((ref) {
   final asyncDrugs = ref.watch(drugsApiProvider);

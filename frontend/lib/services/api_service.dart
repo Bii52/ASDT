@@ -7,22 +7,27 @@ class ApiService {
   static String get _baseUrl {
     if (kIsWeb) {
       // Point Flutter Web to LAN backend
-      return 'http://192.168.100.191:5000/api';
+      return 'http://192.168.1.19:5000/api';
     } else {
       // Mobile/desktop builds also use LAN backend
-      return 'http://192.168.100.191:5000/api';
+      return 'http://192.168.1.19:5000/api';
     }
   }
-  
+
+  static String get baseUrl => _baseUrl;  
   static String? _authToken;
 
   static Future<Map<String, String>> _getHeaders() async {
     final headers = {'Content-Type': 'application/json'};
     if (_authToken == null) {
+      print('ApiService: _getHeaders() - _authToken is null, attempting to load.');
       await _loadAuthToken();
     }
     if (_authToken != null) {
       headers['Authorization'] = 'Bearer $_authToken';
+      print('ApiService: _getHeaders() - Authorization header added.');
+    } else {
+      print('ApiService: _getHeaders() - No Authorization header added (token is null).');
     }
     return headers;
   }
@@ -34,18 +39,21 @@ class ApiService {
   static Future<void> _loadAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     _authToken = prefs.getString('authToken');
+    print('ApiService: _loadAuthToken() - Loaded token: $_authToken');
   }
 
   static Future<void> saveAuthToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('authToken', token);
     _authToken = token;
+    print('ApiService: saveAuthToken() - Token saved.');
   }
 
   static Future<void> removeAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('authToken');
     _authToken = null;
+    print('ApiService: removeAuthToken() - Token removed.');
   }
 
   static Future<http.Response> get(String endpoint) async {

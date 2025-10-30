@@ -29,7 +29,7 @@ class RemindersPage extends ConsumerWidget {
               },
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/reminders/add'),
+        onPressed: () => context.push('/reminders/add'), // This now correctly points to the new single-add page
         child: const Icon(Icons.add),
       ),
     );
