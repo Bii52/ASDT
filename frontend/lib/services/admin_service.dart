@@ -38,7 +38,7 @@ class AdminService {
       if (emailVerified != null) url += '&emailVerified=$emailVerified';
       if (phoneVerified != null) url += '&phoneVerified=$phoneVerified';
       if (isLocked != null) url += '&isLocked=$isLocked';
-      if (q != null && q.isNotEmpty) url += '&q=' + Uri.encodeQueryComponent(q);
+      if (q != null && q.isNotEmpty) url += '&q=${Uri.encodeQueryComponent(q)}';
       
       final response = await ApiService.get(url);
       return json.decode(response.body);

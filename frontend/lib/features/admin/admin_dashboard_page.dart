@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:uuid/uuid.dart';
 import '../../services/admin_service.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
+
+
 
 class AdminDashboardPage extends ConsumerStatefulWidget {
   const AdminDashboardPage({super.key});
@@ -1146,6 +1150,8 @@ Future<String?> _promptReason(BuildContext context, {required String title}) asy
   );
 }
 
+
+
 class _AdminProductCrud extends StatefulWidget {
   const _AdminProductCrud();
   @override
@@ -1287,6 +1293,11 @@ class _AdminProductCrudState extends State<_AdminProductCrud> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
+                                    tooltip: 'Tạo mã QR',
+                                    icon: const Icon(Icons.qr_code),
+                                    onPressed: () => _showQrCodeDialog(p),
+                                  ),
+                                  IconButton(
                                     tooltip: 'Sửa',
                                     icon: const Icon(Icons.edit),
                                     onPressed: () => _openEditDialog(context, product: p),
@@ -1346,6 +1357,64 @@ class _AdminProductCrudState extends State<_AdminProductCrud> {
               },
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+
+
+  Future<void> _showQrCodeDialog(Map<String, dynamic> product) async {
+    String? qrData = product['qrCode'] as String?;
+
+    if (qrData == null || qrData.isEmpty) {
+      // Generate a new QR code
+      final newQrCode = const Uuid().v4();
+      final res = await ProductService.updateProduct(product['_id'], {'qrCode': newQrCode});
+
+      if (res['success'] == true) {
+        setState(() {
+          product['qrCode'] = newQrCode;
+        });
+        qrData = newQrCode;
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(res['message'] ?? 'Failed to generate QR code')),
+          );
+        }
+        return;
+      }
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Mã QR của sản phẩm'),
+        content: SizedBox(
+          width: 300,
+          height: 350,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(product['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 250,
+                height: 250,
+                child: QrImageView(
+                  data: qrData!,
+                  version: QrVersions.auto,
+                  size: 250.0,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(qrData, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng')),
         ],
       ),
     );
