@@ -1368,15 +1368,12 @@ class _AdminProductCrudState extends State<_AdminProductCrud> {
     String? qrData = product['qrCode'] as String?;
 
     if (qrData == null || qrData.isEmpty) {
-      // Generate a new QR code
-      final newQrCode = const Uuid().v4();
-      final res = await ProductService.updateProduct(product['_id'], {'qrCode': newQrCode});
-
+      final res = await ProductService.generateProductQr(product['_id']);
       if (res['success'] == true) {
-        setState(() {
-          product['qrCode'] = newQrCode;
-        });
-        qrData = newQrCode;
+        qrData = res['qrCode'] as String?;
+        if (qrData != null) {
+          setState(() { product['qrCode'] = qrData; });
+        }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

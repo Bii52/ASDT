@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../../services/api_service.dart';
 import '../providers/chat_provider.dart';
 import '../../../services/chat_service.dart';
 import '../../../services/auth_service.dart';
+import '../../../services/chat_socket_service.dart';
 import 'chat_detail_page.dart';
 
 class StartChatPage extends ConsumerStatefulWidget {
@@ -24,6 +25,13 @@ class _StartChatPageState extends ConsumerState<StartChatPage> {
   @override
   void initState() {
     super.initState();
+    // Ensure socket is connected for realtime updates
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final token = ref.read(authProvider).token;
+      if (token != null) {
+        ref.read(chatSocketServiceProvider).connect(token);
+      }
+    });
     _loadDoctors();
   }
 
@@ -34,9 +42,8 @@ class _StartChatPageState extends ConsumerState<StartChatPage> {
         _error = null;
       });
 
-      const baseUrl = kIsWeb ? 'http://localhost:5000/api' : 'http://192.168.100.191:5000/api';
       final response = await http.get(
-        Uri.parse('$baseUrl/auth/doctors'),
+        Uri.parse('${ApiService.baseUrl}/auth/doctors'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${ref.read(authProvider).token}',

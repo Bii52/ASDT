@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:go_router/go_router.dart';
+import '../../services/product_service.dart';
 
 class UserQrScannerPage extends StatefulWidget {
   const UserQrScannerPage({super.key});
@@ -12,6 +12,7 @@ class UserQrScannerPage extends StatefulWidget {
 class _UserQrScannerPageState extends State<UserQrScannerPage> {
   final MobileScannerController _scannerController = MobileScannerController();
   bool _isProcessing = false;
+  bool _isScanning = true;
 
   @override
   void dispose() {
@@ -19,7 +20,7 @@ class _UserQrScannerPageState extends State<UserQrScannerPage> {
     super.dispose();
   }
 
-  void _handleBarcode(BarcodeCapture capture) {
+  Future<void> _handleBarcode(BarcodeCapture capture) async {
     if (_isProcessing) return;
     setState(() {
       _isProcessing = true;
@@ -29,37 +30,46 @@ class _UserQrScannerPageState extends State<UserQrScannerPage> {
     if (barcodes.isNotEmpty) {
       final String? code = barcodes.first.rawValue;
       if (code != null) {
-        // The admin panel now generates a UUID, not a URL.
-        // The pharmacist scanner validates this UUID against a protected endpoint.
-        // For a public scanner, we have a problem: the QR code contains a UUID, but there is no public endpoint to resolve it.
-
-        // For now, let's assume the QR code contains the product ID and we can navigate to the public product detail page.
-        // This means the admin QR code generation logic needs to be changed back to generating a URL.
-        // Or, we need a new public endpoint like GET /api/products/by-qr/{qrCode}
-
-        // Let's proceed with the assumption that we need a new public endpoint.
-        // I will add a TODO here and discuss with the user.
-
-        // For now, I will just display the scanned code.
-        Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('QR Code Scanned'),
-            content: Text('Scanned data: $code'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+        try {
+          final result = await ProductService.findProductByQRCode(code);
+          if (result['success'] == true) {
+            final product = result['data'];
+            setState(() { _isScanning = false; });
+            if (!mounted) return;
+            await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Sản phẩm'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(product['name'] ?? 'Không có tên', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    if (product['price'] != null) Text('Giá: ${product['price']}'),
+                    if (product['dosage'] != null) Text('Liều lượng: ${product['dosage']}'),
+                    if (product['sideEffects'] != null) Text('Tác dụng phụ: ${product['sideEffects']}'),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Đóng'),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-
+            );
+          } else {
+            _showError(result['message'] ?? 'Không tìm thấy sản phẩm');
+          }
+        } catch (e) {
+          _showError('Lỗi khi tra cứu: $e');
+        }
       } else {
         _showError('QR Code is empty');
       }
     }
+    setState(() { _isProcessing = false; _isScanning = true; });
   }
 
   void _showError(String message) {

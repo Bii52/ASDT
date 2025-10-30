@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../services/api_service.dart';
 import '../chat/providers/chat_provider.dart';
 import '../../services/chat_service.dart';
 import '../../services/auth_service.dart';
@@ -35,9 +35,8 @@ class _DoctorListPageState extends ConsumerState<DoctorListPage> {
         _error = null;
       });
 
-      const baseUrl = kIsWeb ? 'http://192.168.1.19:5000/api' : 'http://192.168.1.19:5000/api';
       final response = await http.get(
-        Uri.parse('$baseUrl/auth/doctors'),
+        Uri.parse('${ApiService.baseUrl}/auth/doctors'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${ref.read(authProvider).token}',

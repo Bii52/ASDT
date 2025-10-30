@@ -19,7 +19,8 @@ const START_SERVER = async () => {
   const io = initSocketServer(httpServer)
   app.set('io', io)
 
-  app.use(cors({ origin: true, credentials: true }))
+  const allowedOrigin = env.FRONTEND_ORIGIN || true
+  app.use(cors({ origin: allowedOrigin, credentials: true }))
   app.use((req, res, next) => {
     const origin = req.headers.origin || '*'
     res.header('Access-Control-Allow-Origin', origin)

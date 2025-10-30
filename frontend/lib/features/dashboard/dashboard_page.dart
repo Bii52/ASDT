@@ -46,6 +46,13 @@ class DashboardPage extends ConsumerWidget {
         onTap: () => context.push('/categories'),
       ),
       _DashCard(
+        title: 'Quét QR',
+        subtitle: 'Quét mã thuốc nhanh',
+        icon: Icons.qr_code_scanner,
+        color: Colors.purple,
+        onTap: () => context.push('/drugs/scan'),
+      ),
+      _DashCard(
         title: 'Chat với bác sĩ',
         subtitle: 'Tư vấn trực tuyến',
         icon: Icons.chat_bubble_outline,

@@ -1,14 +1,27 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'api_service.dart';
 
 class ProductService {
-  static const String _baseUrl = kIsWeb ? 'http://192.168.1.19:5000/api' : 'http://192.168.1.19:5000/api';
 
   static Future<Map<String, dynamic>> _handleApiResponse(http.Response response) async {
+    if (response.statusCode == 204) {
+      return {
+        'success': true,
+        'data': null,
+        'message': 'No Content'
+      };
+    }
     if (response.statusCode >= 200 && response.statusCode < 500) {
       try {
+        if (response.body.isEmpty) {
+          return {
+            'success': response.statusCode >= 200 && response.statusCode < 300,
+            'data': null,
+            'message': 'Success'
+          };
+        }
         final data = jsonDecode(response.body);
         return {
           'success': response.statusCode >= 200 && response.statusCode < 300,
@@ -43,7 +56,7 @@ class ProductService {
       if (limit != null) queryParams['limit'] = limit.toString();
       if (page != null) queryParams['page'] = page.toString();
 
-      final uri = Uri.parse('$_baseUrl/products/test').replace(queryParameters: queryParams);
+      final uri = Uri.parse('${ApiService.baseUrl}/products/test').replace(queryParameters: queryParams);
       final response = await http.get(
         uri,
         headers: await ApiService.getHeaders(),
@@ -96,10 +109,23 @@ class ProductService {
     }
   }
 
+  static Future<Map<String, dynamic>> generateProductQr(String productId) async {
+    try {
+      final response = await ApiService.post('products/$productId/qr', {});
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'qrCode': data['qrCode']};
+      }
+      return await _handleApiResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to generate QR: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> getCategories() async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/categories/test'),
+        Uri.parse('${ApiService.baseUrl}/categories/test'),
         headers: {'Content-Type': 'application/json'},
       ).timeout(const Duration(seconds: 10));
       return await _handleApiResponse(response);

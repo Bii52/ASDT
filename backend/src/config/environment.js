@@ -6,6 +6,7 @@ export const env = {
   APP_HOST: process.env.APP_HOST,
   APP_PORT: process.env.APP_PORT,
   BUILD_MODE: process.env.BUILD_MODE,
+  FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN,
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   EMAIL_USER: process.env.EMAIL_USER,

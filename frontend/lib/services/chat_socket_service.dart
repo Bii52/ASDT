@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../features/chat/models/conversation.dart';
+import 'app_config.dart';
 
-const String socketUrl = 'http://192.168.1.19:5000';
+const String socketUrl = socketBaseUrl;
 
 class ChatSocketService {
   io.Socket? _socket;

@@ -1,18 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'app_config.dart';
 
 class ApiService {
-  static String get _baseUrl {
-    if (kIsWeb) {
-      // Point Flutter Web to LAN backend
-      return 'http://192.168.1.19:5000/api';
-    } else {
-      // Mobile/desktop builds also use LAN backend
-      return 'http://192.168.1.19:5000/api';
-    }
-  }
+  static String get _baseUrl => apiBaseUrl;
 
   static String get baseUrl => _baseUrl;  
   static String? _authToken;

@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import '../../services/app_config.dart';
 
 
-const String socketUrl = 'http://192.168.1.19:5000';
+const String socketUrl = socketBaseUrl;
 
 class SocketService {
   io.Socket? _socket;

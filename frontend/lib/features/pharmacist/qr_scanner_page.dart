@@ -324,7 +324,9 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // TODO: Navigate to product detail or edit
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Chức năng chỉnh sửa sẽ sớm khả dụng.')),
+                    );
                   },
                   icon: const Icon(Icons.edit),
                   label: const Text('Chỉnh sửa'),

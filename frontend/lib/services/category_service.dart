@@ -1,15 +1,14 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'api_service.dart';
 
 class CategoryService {
-  final String baseUrl = kIsWeb ? 'http://192.168.1.19:5000/api' : 'http://192.168.1.19:5000/api';
 
   Future<List<dynamic>> getCategories() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/categories/test'),
+        Uri.parse('${ApiService.baseUrl}/categories/test'),
         headers: {
           'Content-Type': 'application/json',
         },

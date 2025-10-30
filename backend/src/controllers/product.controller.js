@@ -24,6 +24,15 @@ const getProduct = catchAsync(async (req, res) => {
   res.send(product);
 });
 
+const getProductByQr = catchAsync(async (req, res) => {
+  const { qrCode } = req.params;
+  const product = await productService.getProductByQrCode(qrCode);
+  if (!product) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Product not found');
+  }
+  res.send(product);
+});
+
 const updateProduct = catchAsync(async (req, res) => {
   const product = await productService.updateProductById(req.params.productId, req.body);
   res.send(product);
@@ -32,6 +41,11 @@ const updateProduct = catchAsync(async (req, res) => {
 const deleteProduct = catchAsync(async (req, res) => {
   await productService.deleteProductById(req.params.productId);
   res.status(httpStatus.NO_CONTENT).send();
+});
+
+const generateProductQr = catchAsync(async (req, res) => {
+  const code = await productService.generateQrForProduct(req.params.productId);
+  res.status(httpStatus.OK).json({ success: true, qrCode: code });
 });
 
 const getProductsByCategoryId = catchAsync(async (req, res) => {
@@ -44,7 +58,9 @@ export const productController = {
   createProduct,
   getProducts,
   getProduct,
+  getProductByQr,
   updateProduct,
   deleteProduct,
+  generateProductQr,
   getProductsByCategoryId,
 };
